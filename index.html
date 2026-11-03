@@ -128,6 +128,9 @@ nav{max-width:1900px;margin:0 auto;display:flex;align-items:center;gap:clamp(8px
 .overlay{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:rgba(255,255,255,.72);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
 .overlay[hidden]{display:none}
 .modal{width:min(640px,100%);max-height:calc(100dvh - 32px);overflow:auto;border-radius:22px;box-shadow:0 18px 50px rgba(27,29,18,.18)}
+/* Dégradé en bas tant que la carte continue sous le cadre (3 novembre) */
+.modal::after{content:"";position:sticky;bottom:0;display:block;height:64px;margin-top:-64px;background:linear-gradient(rgba(255,255,255,0),#fff 85%);pointer-events:none;transition:opacity .2s}
+.modal.end::after{opacity:0}
 .card{perspective:1600px;min-width:0}
 .inner{display:grid;transition:transform .5s cubic-bezier(.2,.7,.2,1);transform-style:preserve-3d}
 .card.flipped .inner{transform:rotateY(180deg)}
@@ -237,9 +240,12 @@ nav{position:relative;z-index:20}
 .lang>a{display:flex;align-items:center;gap:5px;color:var(--ink);text-decoration:none}
 .sub.sm{left:auto;right:-10px;min-width:0}
 .about{padding:72px max(16px,env(safe-area-inset-right,0px)) 72px max(16px,env(safe-area-inset-left,0px));margin-top:56px;background:var(--paper)}
-.about-in{max-width:760px;margin:0 auto;display:grid;gap:14px;justify-items:center;text-align:center}
+.about-in{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 56px}
+.about-col{display:grid;gap:14px;justify-items:center;align-content:start;text-align:center}
+@media (max-width:760px){.about-in{grid-template-columns:1fr}}
 .about h2{font-family:var(--head);font-size:clamp(24px,2.2vw,32px);margin:0;line-height:1.2}
-.about p{margin:0;line-height:1.6;max-width:56ch}
+.about p{margin:0;line-height:1.6;max-width:56ch;text-wrap:balance}
+.about h2{text-wrap:balance}
 .about .dl{display:inline-block;margin-top:8px;font-size:16px;padding:12px 24px}
 .foot{border-top:1px solid var(--line)}
 .foot{background:var(--paper);padding:40px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px))}
@@ -318,11 +324,17 @@ body{margin:0}
   </div>
 </main>
 
-<section class="about" aria-labelledby="about-t">
+<section class="about" aria-label="Pour aller plus loin">
   <div class="about-in">
-    <h2 id="about-t">Pour mieux comprendre les enjeux</h2>
-    <p>Le rapport L'IA en clair explique d'où viennent les impacts environnementaux de l'IA.</p>
-    <p><a class="pill d dl" href="rapport-ia-en-clair.pdf">Rapport L'IA en clair</a></p>
+    <div class="about-col">
+      <h2>Pour mieux comprendre les enjeux</h2>
+      <p>Le rapport L'IA en clair, soutenu par l'ADEME et en partenariat avec GreenIT</p>
+      <p><a class="pill d dl" href="rapport-ia-en-clair.pdf">Rapport L'IA en clair</a></p>
+    </div>
+    <div class="about-col">
+      <h2>Pour se former</h2>
+      <p><a class="pill d dl" href="cours-stepup">Cours StepUP</a></p>
+    </div>
   </div>
 </section>
 
@@ -393,19 +405,19 @@ const ALLCARDS=[
  revoir:"Si les logiciels de bureau activent l'IA par défaut sans réglage possible, si leurs éditeurs publient la consommation de ces fonctions, ou si la consommation d'une demande de texte change d'ordre de grandeur.",
  t:"Pour les tâches simples, commencer par ses outils habituels",
  txt:`<p>Une partie des demandes faites à un assistant comme ChatGPT, Vibe (ex-Le Chat) ou Claude peut trouver sa réponse dans un tableur, un traitement de texte ou une messagerie.</p>`,
- fig:{type:'list',items:["Le correcteur orthographique de la messagerie, dans Outlook ou Gmail, suffit en général pour corriger un mail.","Un document déjà fait, sur un projet précédent ou par un collègue, sert souvent de modèle pour un devis ou un planning.","Un ancien mail sur le même sujet peut servir de base pour répondre."]},
- persp:"Une demande ponctuelle peut sembler négligeable, mais quand toute une équipe en fait une pour chaque mail, tous les jours, l'énergie consommée par les serveurs s'additionne. Plus un outil est simple à utiliser, plus il sert : c'est l'effet rebond. Les logiciels de bureau intègrent aussi l'IA, comme Copilot dans Word et Gemini dans Gmail. Leurs éditeurs publient peu de données sur ce que ces fonctions consomment.",
+ fig:{type:'list',items:["Le correcteur orthographique de la messagerie, dans Outlook ou Gmail, suffit en général pour corriger un mail.","Un document déjà fait, sur un projet précédent ou par un collègue, sert souvent de modèle pour un devis ou un planning."]},
+ persp:"Une demande ponctuelle peut sembler négligeable, mais quand toute une équipe en fait une pour chaque mail, tous les jours, l'énergie consommée par les serveurs s'additionne.",
 
  who:[['ind',"La personne qui fait la tâche"]],req:[['str',"La direction ou le service informatique"]],
  q:["Quelles tâches ne valent pas l'IA, parce qu'un outil classique fait aussi bien ?","Faut-il vraiment l'IA pour construire plans de travail et plannings, ou un outil classique suffit-il ?"],
  voir:['outil','reglages'],sit:"Au quotidien",act:"Une habitude à prendre",fx:'indirect',k:"fonction logiciel moteur besoin tableur traitement de texte formule planning devis feuille de service mail correcteur tache simple copilot effet rebond",
- src:[["DINUM, CGDD et DAE, Fiche pratique pour l'achat responsable de solutions d'IA (2025)","https://ecoresponsable.numerique.gouv.fr/docs/2025/MINUMECO_fiche_IA_frugale_VF.pdf"],["AFNOR, Référentiel général pour l'IA frugale, Spec 2314 (2024)"],["ADEME, Avis sur l'IA générative (2026)","https://librairie.ademe.fr/economie-circulaire-et-dechets/9495-avis-de-l-ademe-l-intelligence-artificielle-generative-des-impacts-environnementaux-importants.html"],["Luccioni, Strubell et Crawford, From efficiency gains to rebound effects (2025)","https://arxiv.org/abs/2501.16548"]]},
+ src:[["DINUM, CGDD et DAE, Fiche pratique pour l'achat responsable de solutions d'IA (2025)","https://ecoresponsable.numerique.gouv.fr/docs/2025/MINUMECO_fiche_IA_frugale_VF.pdf"],["AFNOR, Référentiel général pour l'IA frugale, Spec 2314 (2024)"],["ADEME, Avis sur l'IA générative (2026)","https://librairie.ademe.fr/economie-circulaire-et-dechets/9495-avis-de-l-ademe-l-intelligence-artificielle-generative-des-impacts-environnementaux-importants.html"]]},
 {id:'comparer',s:"Existant avant de générer",c:'ind',i:2,forme:'barres',verif:'2026-11',
  revoir:"Si les entreprises de l'IA publient la consommation par vidéo, si des mesures paraissent pour la voix et la musique générées, ou si la génération de vidéos longues change l'ordre de grandeur.",
  t:"Avant de générer une image, une vidéo, une voix ou une musique, chercher si elle existe déjà",
  txt:`<p>Un plan déjà tourné, une archive ou une image de banque servent souvent sans rien générer. S'il faut générer, commencer par une image fixe, puis une vidéo courte en basse définition.</p>`,
  fig:{type:'bars',max:100,rows:[["Réutiliser un plan, une voix, une musique",0,0,"rien à générer"],["Banque d'images ou de sons",0,0,"rien à générer"],["Image générée",0,3,"environ 3 Wh"],["Vidéo de 5 secondes générée",0,90,"environ 90 Wh"]]},
- persp:"Doubler la durée ou la définition d'une vidéo peut multiplier sa consommation par quatre, selon l'ADEME. Pour les voix et les musiques générées, aucune mesure n'est encore publiée.",
+ persp:"Doubler la durée ou la définition d'une vidéo peut multiplier sa consommation par quatre, selon l'ADEME.",
  who:[['ind',"La personne qui monte, illustre ou prépare des références visuelles"]],req:[['pre',"Le client ou la production, qui peut demander un plan réutilisé ou une image de banque"]],
  q:["Générer des plans d'illustration au lieu d'un tournage de plans de coupe, est-ce plus sobre ?","Générer une voix de synthèse consomme-t-il beaucoup ?"],
  voir:['droits-ia','avant-apres'],sit:"Pendant la fabrication",act:"Une habitude à prendre",fx:'moyen',k:"image video voix doublage musique generer generation banque d'images archives reutiliser plan essais iterations son librairie",
@@ -413,11 +425,11 @@ const ALLCARDS=[
 {id:'essais',s:"Essais légers",c:'ind',i:2,forme:'longue',large:'effet rebond',verif:'2026-11',
  revoir:"Si les outils cités changent leurs modes brouillon ou leurs modèles légers, si l'agrandissement est intégré à la génération dans les principaux outils, ou si une mesure publiée de l'énergie d'un agrandissement par IA contredit l'estimation du Carbon Trust. À revoir au plus tard en mai 2027.",
  t:"Faire les essais avec le mode le plus léger de l'outil, et n'agrandir que la version retenue",
- txt:`<p>Trouver le bon plan avec l'IA demande souvent des dizaines d'essais avant d'en garder un. Chaque essai fait travailler les serveurs de l'outil et consomme de l'énergie, d'autant plus que l'image est grande et que la vidéo est longue.</p><p>La plupart des outils proposent pourtant un réglage plus léger pour cette recherche.</p>`,
+ txt:`<p>Trouver le bon plan avec l'IA demande souvent des dizaines d'essais avant d'en garder un. Chaque essai fait travailler les serveurs de l'outil et consomme de l'énergie, d'autant plus que l'image est grande et que la vidéo est longue.</p>`,
  fig:{type:'list',items:["Le mode brouillon de l'outil, souvent appelé Draft, Turbo ou Lite, suffit en général pour chercher le cadre et le mouvement, quitte à relancer la version retenue avec le modèle complet.","Pour une vidéo, un essai court, limité à la durée utile, consomme moins qu'un plan long.","Une fois le choix fait, l'agrandissement par l'IA se lance sur la seule version retenue, sans dépasser la définition de diffusion."]},
  txt2:`<p>Pour une scène de série étudiée par le Carbon Trust en 2026, un studio d'effets visuels a généré tous ses essais en 720p, et n'a agrandi en 4K que les vidéos retenues. Si les 2 137 essais avaient été générés directement en haute définition (1080p), chacun aurait demandé environ cinq fois plus d'énergie, selon l'estimation du Carbon Trust.</p>`,
  fig2:{type:'bars',max:2137,rows:[["Vidéos générées pour chercher (720p)",0,2137,"2 137"],["Vidéos agrandies pour la livraison (4K)",0,87,"87"]]},
- persp:"Le studio a tout de même généré environ 25 vidéos pour chaque vidéo retenue. Un essai moins cher peut pousser à en lancer davantage : c'est l'effet rebond. Le nombre de versions se fixe donc aussi à l'échelle du projet.",
+ persp:"Le studio a tout de même généré environ 25 vidéos pour chaque vidéo retenue. Un essai moins cher peut pousser à en lancer davantage : c'est l'effet rebond.",
  who:[['ind',"La personne qui génère les images ou les vidéos"]],req:[['pro',"La production, qui fixe le nombre de versions"],['pre',"Le client, en acceptant de valider sur des versions brouillon"]],
  q:["Une petite image consomme-t-elle moins qu'une grande ?","Comment upscaler ou restaurer des images avec l'IA de façon plus sobre ?"],
  voir:['comparer','versions'],sit:"Pendant la fabrication",act:"Une habitude à prendre",fx:'moyen',k:"video image definition 4K essais brouillon draft turbo lite agrandissement upscale upscaling topaz midjourney runway flow veo luma kling concept art storyboard animatique",
@@ -427,11 +439,11 @@ const ALLCARDS=[
  t:"Pour trier, transcrire, traduire, détourer ou nettoyer un son, choisir un outil conçu pour cette tâche",
  txt:`<p>Pour transcrire une interview ou traduire un texte, beaucoup passent par un assistant généraliste comme ChatGPT, Vibe (ex-Le Chat) ou Gemini. Le logiciel du métier sait souvent déjà le faire, avec un modèle conçu pour cette seule tâche, qui consomme en général beaucoup moins d'énergie, autant s'en servir d'abord&nbsp;!</p>`,
  fig:{type:'big',items:[["Jusqu'à 35 fois<sup>*</sup>","plus d'énergie pour traduire avec un petit modèle polyvalent qu'avec un modèle conçu pour la traduction."]],p:"* Les grands assistants comme ChatGPT n'ont pas été mesurés de cette façon."},
- persp:"DeepL repose depuis 2024 sur un grand modèle de langage, et aucune mesure publiée ne le compare encore à ChatGPT. Un outil spécialisé consomme lui aussi de l'énergie, d'autant plus quand il traite des heures de programmes.",
+ persp:"Un outil spécialisé consomme lui aussi de l'énergie, d'autant plus quand il traite des heures de programmes.",
  who:[['ind',"La personne au montage, au son, aux effets visuels, au sous-titrage ou aux archives"]],req:[['str',"La production ou le studio, qui fournit les logiciels et paie les licences"]],
  q:["La traduction avec DeepL a-t-elle moins d'impact qu'avec ChatGPT ?","Comment transcrire des interviews et rushes avec l'IA de façon plus sobre ?"],
- voir:['besoin','publie'],sit:"Pendant la fabrication",act:"Une habitude à prendre",fx:'moyen',k:"rushes archives transcription sous-titres sous-titrage traduction detourage rotoscopie son debruitage voix deepl whisper premiere davinci avid media composer izotope silhouette mocha eztitles subtitle edit iconik axle effets visuels montage indexation",
- src:[["Luccioni, Jernite et Strubell, Power Hungry Processing (2024)","https://arxiv.org/abs/2311.16863"],["UCL et UNESCO, Smarter, smaller, stronger (2025)","https://discovery.ucl.ac.uk/id/eprint/10215820"],["CNC et BearingPoint, Quel impact de l'IA sur les filières du cinéma, de l'audiovisuel et du jeu vidéo ? (2024)","https://www.cnc.fr/documents/36995/2097582/Cartographie+des+usages+IA_rapport+complet.pdf"],["DeepL, annonce de son modèle de langage pour la traduction (2024)","https://www.deepl.com/en/press-release/deepl-launches-next-generation-llm-that-outperforms-gpt-4-google-and-microsoft-for-translation-quality"]]},
+ voir:['besoin','decide'],sit:"Pendant la fabrication",act:"Une habitude à prendre",fx:'moyen',k:"rushes archives transcription sous-titres sous-titrage traduction detourage rotoscopie son debruitage voix deepl whisper premiere davinci avid media composer izotope silhouette mocha eztitles subtitle edit iconik axle effets visuels montage indexation",
+ src:[["Luccioni, Jernite et Strubell, Power Hungry Processing (2024)","https://arxiv.org/abs/2311.16863"],["UCL et UNESCO, Smarter, smaller, stronger (2025)","https://discovery.ucl.ac.uk/id/eprint/10215820"],["CNC et BearingPoint, Quel impact de l'IA sur les filières du cinéma, de l'audiovisuel et du jeu vidéo ? (2024)","https://www.cnc.fr/documents/36995/2097582/Cartographie+des+usages+IA_rapport+complet.pdf"]]},
 {id:"reflexion",s:"Mode réflexion",c:'ind',t:"Dans un assistant conversationnel, couper le mode réflexion pour les questions simples",wip:1},
 {id:"court",s:"Réponse courte",c:'ind',t:"Dans un assistant conversationnel, demander une réponse courte et ne joindre que le passage utile",wip:1},
 {id:"conversation",s:"Nouvelle conversation",c:'ind',t:"Ouvrir une nouvelle conversation plutôt que de prolonger un échange très long",wip:1},
@@ -449,7 +461,7 @@ const ALLCARDS=[
  t:"Pour les documents confidentiels, utiliser un modèle d'IA local",
  txt:`<p>Un modèle local tourne sur une machine contrôlée par l'utilisateur ou par sa structure, sans envoyer le document sur internet. C'est ce que la CNIL recommande de privilégier pour les données sensibles.</p>`,
  fig:{type:'list',items:["Sur son ordinateur, avec un logiciel gratuit comme LM Studio ou Ollama et un modèle léger qui parle français, comme Ministral 3 de Mistral. Il faut un Mac avec une puce M1 ou plus récente, ou un PC de 16 Go de mémoire.","Dans la structure, avec un modèle installé sur un serveur interne et partagé par l'équipe : c'est le déploiement « sur site »."]},
- txt2:`<p>Sur un ordinateur, un petit modèle convient pour relire un passage ou résumer un document court, pas pour un scénario entier, qui peut être tronqué sans avertissement. Avant tout, relire ce que permet la clause de confidentialité.</p>`,
+ txt2:`<p>Sur un ordinateur, un petit modèle convient pour relire un passage ou résumer un document court, pas pour un scénario entier, qui peut être tronqué sans avertissement.</p>`,
  persp:"Côté énergie, rien ne garantit qu'un modèle local consomme moins : à modèle égal, les serveurs des centres de données font 1,4 à 7 fois plus de travail par unité d'énergie qu'un ordinateur.",
  who:[['ind',"La personne qui manipule le document"],['str',"La direction ou le service informatique, pour un modèle partagé"]],req:[],
  q:["Un modèle local protège-t-il mieux nos données et nos scénarios ?","Un modèle local est-il aussi bon que ChatGPT ?"],
@@ -459,8 +471,7 @@ const ALLCARDS=[
  revoir:"Si l'AIE publie de nouveaux chiffres d'émissions des centres de données ou de l'aviation, si une entreprise de l'IA publie une mesure vérifiée par un tiers, ou si l'ADEME publie des chiffres de référence par usage. À revoir chaque année.",
  t:"Citer un chiffre sur l'IA avec ce qu'il mesure, son année et sa source",
  txt:`<p>Les chiffres sur l'IA circulent souvent sans leur source, et la presse elle-même s'y perd : en 2025, les trois quarts des articles qui chiffraient l'énergie d'une question à ChatGPT le faisaient sans source. Or un chiffre faux, dans un sens comme dans l'autre, finit souvent par servir d'argument pour ne rien changer !</p>`,
- fig:{type:'list',items:["« Une conversation avec ChatGPT consomme une bouteille d'eau. » Pas tout à fait : une étude de 2023 sur GPT-3, un modèle remplacé depuis, trouvait un demi-litre pour 10 à 50 réponses, surtout de l'eau utilisée pour produire l'électricité des serveurs.","« L'IA pollue plus que l'aviation. » Selon l'Agence internationale de l'énergie, les centres de données émettaient environ 180 millions de tonnes de CO2 en 2024, l'aviation près de 950 millions en 2023, et l'IA en pèserait environ 15 %. Ces chiffres ne comparent que le CO2, sans l'eau, les métaux ni les déchets, et les émissions des centres de données augmentent, comme celles de l'aviation.","« Une question à l'IA, c'est moins de neuf secondes de télévision. » La comparaison vient de Google, à partir de ses propres chiffres que personne n'a pu vérifier, et porte sur une seule question, alors que des milliards sont posées chaque jour."]},
- txt2:`<p>Un assistant comme ChatGPT ou Vibe (ex-Le Chat) n'a pas de mesure de son propre impact, et il peut inventer une source. Les publications publiques restent plus sûres :</p>`,
+ fig:{type:'list',items:["« Une conversation avec ChatGPT consomme une bouteille d'eau. » Pas tout à fait : une étude de 2023 sur GPT-3, un modèle remplacé depuis, trouvait un demi-litre pour 10 à 50 réponses, surtout de l'eau utilisée pour produire l'électricité des serveurs.","« L'IA pollue plus que l'aviation. » Selon l'Agence internationale de l'énergie, les centres de données émettaient environ 180 millions de tonnes de CO2 en 2024, l'aviation près de 950 millions en 2023. Ces chiffres ne comparent que le CO2, sans l'eau, les métaux ni les déchets, et les émissions des centres de données augmentent, comme celles de l'aviation.","« Une question à l'IA, c'est moins de neuf secondes de télévision. » La comparaison vient de Google, à partir de ses propres chiffres que personne n'a pu vérifier, et porte sur une seule question, alors que des milliards sont posées chaque jour."]},
  fig2:{type:'links',items:[["Avis de l'ADEME sur l'IA générative (2026)","https://librairie.ademe.fr/economie-circulaire-et-dechets/9495-11314-avis-de-l-ademe-l-intelligence-artificielle-generative-des-impacts-environnementaux-importants.html","Position de l'agence de la transition écologique, chiffres et recommandations"],["Rapport de l'Arcep sur l'IA générative et l'environnement (2026)","https://www.arcep.fr/uploads/tx_gspublication/rapport-IA-et-environnement_210526.pdf","Ce que mesurent les chiffres publiés, et leurs limites"],["compar:IA","https://comparia.beta.gouv.fr/","Comparateur public d'assistants, avec une estimation de leur impact"]]},
  persp:"Une question posée à ChatGPT consomme peu d'énergie. Mais en 2025, OpenAI annonçait 2,6 milliards de questions par jour, et l'ADEME calcule que cela équivaut chaque jour à la consommation électrique de 145 000 personnes en France. L'impact peut donc sembler négligeable quand il est vu question par question, et important une fois additionné.",
  who:[['ind',"Toute personne qui cite un chiffre sur l'IA, en réunion, dans un document ou face à un client"]],req:[['str',"La personne qui valide la communication de la structure"]],
@@ -470,13 +481,13 @@ const ALLCARDS=[
 {id:'versions',s:"Versions comptées",c:'pro',i:3,forme:'clause',large:'volume',verif:'2026-11',
  revoir:"Si AdGreen ou un calculateur français publie de nouveaux volumes de contenus générés, si une organisation professionnelle française publie une clause type sur l'IA et les versions, ou si le règlement européen sur l'IA change les obligations de déclaration.",
  t:"Fixer au devis le nombre de versions, et compter celles créées par l'IA sur chaque projet",
- txt:`<p>Avec l'IA, les versions se multiplient vite. Depuis février 2026, le calculateur carbone de la publicité britannique, AdGreen, a enregistré environ 400 000 vidéos générées, soit 56 tonnes d'équivalent CO2, et AdGreen constate que ces outils rendent « très facile » de produire énormément de contenus.</p><p>Une version montrée au client en cache souvent des dizaines générées en amont, et chaque génération demande de l'énergie aux serveurs, environ 30 fois plus pour une courte vidéo que pour une image. Compter les images et les secondes de vidéo générées sur chaque projet montre où le volume grimpe, et c'est souvent à cause des retours successifs du client, avec ou sans IA. Écrire au devis le nombre de versions incluses, et dans le contrat entre client et prestataire les outils d'IA prévus, permet d'en parler avant de commencer.</p>`,
+ txt:`<p>Avec l'IA, les versions se multiplient vite. Depuis février 2026, le calculateur carbone de la publicité britannique, AdGreen, a enregistré environ 400 000 vidéos générées, soit 56 tonnes d'équivalent CO2.</p><p>Une version montrée au client en cache souvent des dizaines générées en amont. Compter les images et les secondes de vidéo générées sur chaque projet montre où le volume grimpe. Écrire au devis le nombre de versions incluses, et dans le contrat entre client et prestataire les outils d'IA prévus, permet d'en parler avant de commencer.</p>`,
  tip:"Deux lignes de devis peuvent suffire : « Deux séries de retours incluses ; au-delà, chaque version est facturée. » et « Outils d'IA prévus : génération d'images pour les pistes visuelles, non conservées dans le film final. »",
  persp:"Certains contrats imposent au contraire un nombre minimal de versions, pour laisser la place aux retours : mieux vaut le savoir avant de signer.",
  who:[['pro',"La production"],['pre',"Le prestataire, qui rédige le devis"]],req:[['pre',"Le client ou le diffuseur, qui valide le devis et le contrat"]],
  q:["Avec l'IA on produit dix versions d'une pub au lieu d'une : est-ce un problème ?","Faut-il une clause IA dans les contrats avec les prestataires ?"],
  voir:['essais','preuve'],sit:"Au lancement d'un projet",act:"Une clause au devis ou au contrat",fx:'moyen',k:"versions declinaisons essais iterations publicite video devis contrat clause prestataire client retours adgreen appel d'offres",
- src:[["AdGreen, intervention au forum IA de l'IPA (juin 2026) : vidéos générées enregistrées dans le calculateur","https://the-ipa.shorthandstories.com/ipai-forum-june-2026/future-of-the-industry/environmental-impact-of-ai-production/"],["Carbon Trust et DIMPACT, The carbon impact of AI video generation (2026) : itérations et minimum contractuel","https://www.carbontrust.com/sites/default/files/documents/resource/public/The%20carbon%20impact%20of%20AI%20video%20generation_The%20Carbon%20Trust%20and%20DIMPACT.pdf"],["AICP, National Guidelines Post Production (2026) : versions listées au devis","https://aicp.nyc3.digitaloceanspaces.com/content/assets/editor/PDFs/Post_Production_Guidelines_012126_FINAL.pdf"],["Delavande, Pierrard et Luccioni, Video Killed the Energy Budget (2025) : énergie d'une vidéo et d'une image générées","https://arxiv.org/abs/2509.19222"]]},
+ src:[["AdGreen, intervention au forum IA de l'IPA (juin 2026) : vidéos générées enregistrées dans le calculateur","https://the-ipa.shorthandstories.com/ipai-forum-june-2026/future-of-the-industry/environmental-impact-of-ai-production/"],["Carbon Trust et DIMPACT, The carbon impact of AI video generation (2026) : itérations et minimum contractuel","https://www.carbontrust.com/sites/default/files/documents/resource/public/The%20carbon%20impact%20of%20AI%20video%20generation_The%20Carbon%20Trust%20and%20DIMPACT.pdf"],["AICP, National Guidelines Post Production (2026) : versions listées au devis","https://aicp.nyc3.digitaloceanspaces.com/content/assets/editor/PDFs/Post_Production_Guidelines_012126_FINAL.pdf"]]},
 {id:"une-fois",s:"Faire une seule fois",c:'pro',t:"Dépouiller un scénario ou scanner un lieu une seule fois pour toutes les équipes",wip:1},
 {id:'etape',s:"Étape remplacée ou ajoutée",c:'pro',i:2,t:"Distinguer une étape remplacée par l'IA d'une étape ajoutée",
  ctx:"Usage concerné : préparation, repérages, prévisualisation, montage, effets visuels, toute étape où un outil d'IA arrive.",
@@ -489,14 +500,13 @@ const ALLCARDS=[
 {id:'preuve',s:"Preuve avant d'affirmer",c:'pro',i:3,forme:'grille',verif:'2026-11',
  revoir:"À l'adoption de la loi qui transpose la directive 2024/825 (projet DDADUE), à la parution d'une analyse de cycle de vie publique comparant IA et tournage avec sa méthode, ou à un nouvel avis de l'ADEME.",
  t:"Avant d'affirmer que l'IA réduit l'impact environnemental, en avoir la preuve",
- ctx:"Usage concerné : communication, réponse à un appel d'offres, dossier d'aide, rapport RSE.",
- txt:`<p>Des agences et des studios peuvent mettre en avant des contenus créés par IA comme beaucoup moins émetteurs qu'un tournage, or leur méthode est rarement publiée. Selon l'ADEME, aucune étude connue ne démontre à ce jour un gain environnemental chiffré dû à l'IA générative. Les rares études favorables, comme celle de Scientific Reports en 2024 sur l'écriture et l'illustration, ne comptent que le carbone, sans l'eau, les métaux ni l'effet rebond.</p><p>En France, affirmer sans preuve qu'un produit pollue moins peut constituer une pratique commerciale trompeuse, entre professionnels aussi. L'amende peut atteindre 80 % des dépenses engagées pour la publicité en cause.</p>`,
+ txt:`<p>Des agences et des studios peuvent mettre en avant des contenus créés par IA comme beaucoup moins émetteurs qu'un tournage, or leur méthode est rarement publiée. Selon l'ADEME, aucune étude connue ne démontre à ce jour un gain environnemental chiffré dû à l'IA générative. Les rares études favorables, comme celle de Scientific Reports en 2024 sur l'écriture et l'illustration, ne comptent que le carbone, sans l'eau, les métaux ni l'effet rebond.</p><p>En France, affirmer sans preuve qu'un produit pollue moins peut constituer une pratique commerciale trompeuse, entre professionnels aussi.</p>`,
  fig:{type:'checks',items:["Le tournage comparé aurait-il vraiment eu lieu, avec ces déplacements et ces décors ?","Le calcul compte-t-il tous les essais générés, et pas seulement la version retenue ?","La méthode est-elle publiée ? Vérifiée par un tiers ?"]},
- persp:"Sans preuve, décrire ce qui a été fait plutôt que ses effets : « décors générés, sans repérage sur place ». Une directive européenne, applicable depuis septembre 2026 mais pas encore transposée en France, interdit aussi les allégations vagues comme « verte » ou « éco-responsable ».",
+ persp:"Sans preuve, décrire ce qui a été fait plutôt que ses effets : « décors générés, sans repérage sur place ».",
  who:[['str',"La personne qui rédige la communication, le dossier d'aide ou la réponse à l'appel d'offres"],['pre',"Le prestataire qui annonce un gain"]],req:[['pre',"Le client, l'annonceur ou le diffuseur, qui valide la communication"]],
  q:["Peut-on dire qu'on pollue moins grâce à l'IA ?","Comment répondre à un client qui dit que l'IA rend sa pub plus verte ?"],
  voir:['avant-apres','chiffre'],sit:"Au moment de rendre compte",act:"Une prudence dans sa communication",fx:'indirect',k:"communication greenwashing allegation environnementale verte eco-responsable bas carbone chiffres preuve pub publicite tournage directive",
- src:[["ADEME, L'intelligence artificielle générative : des impacts environnementaux importants (2026)","https://librairie.ademe.fr/economie-circulaire-et-dechets/9495-11314-avis-de-l-ademe-l-intelligence-artificielle-generative-des-impacts-environnementaux-importants.html"],["Tomlinson et al., The carbon emissions of writing and illustrating are lower for AI than for humans, Scientific Reports (2024)","https://doaj.org/article/382603a1022b48cb9350a9ccbc28aefa"],["Code de la consommation, articles L121-2, L121-5 et L132-2 (2024)"],["Directive (UE) 2024/825 sur les allégations environnementales (2024)"]]},
+ src:[["ADEME, L'intelligence artificielle générative : des impacts environnementaux importants (2026)","https://librairie.ademe.fr/economie-circulaire-et-dechets/9495-11314-avis-de-l-ademe-l-intelligence-artificielle-generative-des-impacts-environnementaux-importants.html"],["Tomlinson et al., The carbon emissions of writing and illustrating are lower for AI than for humans, Scientific Reports (2024)","https://doaj.org/article/382603a1022b48cb9350a9ccbc28aefa"],["Code de la consommation, articles L121-2 et L121-5 (2024)"]]},
 {id:"droits-ia",s:"Droits des contenus générés",c:'pro',t:"Vérifier les droits sur les images, les voix et les musiques créées par l'IA avant de diffuser",wip:1},
 {id:"avant-apres",s:"Avant et après",c:'pro',t:"Quand l'IA sert à réduire un déplacement, une consommation ou des déchets, comparer avant et après, sur plusieurs critères, pas uniquement le carbone",wip:1},
 {id:"cycle",s:"Cycle de vie",c:'pro',t:"Comparer IA et méthode classique sur tout le cycle de vie, pas seulement le CO2e",wip:1},
@@ -512,8 +522,8 @@ const ALLCARDS=[
 {id:'decide',s:"Qui décide",c:'str',i:3,forme:'paires',verif:'2026-11',
  revoir:"À la parution du guide Travail et CNIL sur l'introduction de l'IA, à une décision de la Cour de cassation sur la consultation du CSE, ou si l'article 4 du règlement européen sur l'IA change encore.",
  t:"Fixer qui décide des outils d'IA, et quels usages sont admis ou à l'essai",
- txt:`<p>Une règle tient mieux quand elle part des outils que l'équipe utilise déjà. Elle peut alors limiter les usages qui consomment le plus d'énergie, comme la vidéo générée, et couper les fonctions d'IA qui tournent sans être demandées. Selon un sondage Cegid et OpinionWay de 2026, la plupart des salariés qui utilisent l'IA passent par des outils que leur entreprise ne fournit pas, souvent sans le dire. Poser la question sans sanction aide à les connaître.</p>`,
- fig:[{type:'bars',max:100,rows:[["Ensemble des salariés",0,67,"67 %"],["Salariés de PME",0,77,"77 %"]]},{type:'list',items:["Une charte, adoptée en équipe, range chaque usage en admis, à l'essai ou écarté, et nomme la personne qui décide.","Un registre de décisions, tenu cas par cas quand un outil ou une fonction arrive, note chaque décision et qui l'a prise. C'est souvent plus simple pour une petite structure ou un tournage."]}],
+ txt:`<p>Une règle tient mieux quand elle part des outils que l'équipe utilise déjà. Elle peut alors limiter les usages qui consomment le plus d'énergie, comme la vidéo générée, et couper les fonctions d'IA qui tournent sans être demandées. Selon un sondage Cegid et OpinionWay de 2026, la plupart des salariés qui utilisent l'IA passent par des outils que leur entreprise ne fournit pas, souvent sans le dire.</p><p>Au moment de choisir un outil, la personne qui décide peut aussi demander par écrit à l'entreprise de l'IA ce que consomme cet outil, et garder sa réponse, ou son absence de réponse.</p>`,
+ fig:[{type:'bars',max:100,rows:[["Ensemble des salariés",0,67,"67 %"],["Salariés de PME",0,77,"77 %"]]},{type:'list',items:["Une charte, adoptée en équipe, range chaque usage en admis, à l'essai ou écarté, et nomme la personne qui décide.","Un registre de décisions, tenu cas par cas quand un outil ou une fonction arrive, note chaque décision et qui l'a prise."]}],
   tip:"Une ligne de registre peut par exemple se limiter à : « Vidéo générée : à l'essai, en basse définition, décidé par la production le 3 novembre. »",
  persp:"Dans une structure de 50 salariés ou plus, le comité social et économique (CSE), qui représente les salariés, peut demander à être consulté avant l'arrivée d'un outil d'IA, même à l'essai.",
  who:[['str',"La direction ou, sur un tournage, la production, avec l'éco-référent ou le référent IA"]],req:[['str',"Le CSE, dans une structure de 50 salariés ou plus"],['pre',"Le client ou le diffuseur, qui peut fixer ses propres règles"]],
@@ -540,7 +550,7 @@ const ALLCARDS=[
 {id:"seuil",s:"Seuil d'usage",c:'str',t:"Suivre les volumes d'usage et fixer un seuil au-delà duquel l'usage est rediscuté",wip:1},
 {id:"tester",s:"Tester avant d'équiper",c:'str',t:"Avant d'équiper la structure, tester l'outil sur un projet et vérifier le matériel qu'il demande",wip:1},
 {id:"automatisation",s:"Automatisation simple",c:'str',t:"Pour une tâche répétitive, préférer une automatisation simple à un agent",wip:1},
-{id:"agent",s:"Cadrer un agent",c:'str',t:"Cadrer un agent avant de le laisser travailler seul",wip:1},
+{id:"agent",s:"Cadrer un agent",c:'ind',t:"Cadrer un agent avant de le laisser travailler seul",wip:1},
 {id:"reutiliser",s:"Réutiliser",c:'str',t:"Réutiliser les images, les plans et les calculs existants avant d'en créer de nouveaux",wip:1},
 {id:"savoir-faire",s:"Savoir-faire sans IA",c:'str',t:"Garder dans l'équipe des savoir-faire qui se passent de l'IA",wip:1},
 {id:"stations",s:"Stations de calcul",c:'str',t:"Faire évoluer les stations de calcul plutôt que de les remplacer, et les partager entre projets",wip:1},
@@ -552,43 +562,54 @@ const ALLCARDS=[
  t:"Avant de confier un document à l'IA, vérifier les réglages et la confidentialité",
  sub:"C'est une question de confidentialité, qui est en marge de l'impact environnemental.",
  txt:`<p>Dans les comptes gratuits et personnels, ChatGPT, Gemini ou Le Chat (devenu Vibe) peuvent utiliser les conversations et les fichiers joints pour entraîner leurs modèles, par défaut, sauf refus dans les réglages. Les offres entreprise l'excluent par contrat. Pour un scénario sous clause de confidentialité ou des données personnelles, la CNIL recommande de ne jamais passer par un service grand public. Sans autre outil, retirer au moins les noms et les adresses avant de joindre un document.</p>`,
- persp:"Une IA installée sur l'ordinateur garde les documents sur la machine. Elle ne consomme pas forcément moins, et racheter un ordinateur pour la faire tourner alourdit l'empreinte.",
  who:[['ind',"Chaque utilisateur, pour ses réglages"],['str',"La direction, pour le choix d'un compte entreprise"]],req:[['pre',"L'auteur, le diffuseur ou l'annonceur, par une clause de confidentialité dans le contrat"]],
  q:["Les données que je mets dans ChatGPT servent-elles à entraîner le modèle ?","Je peux mettre des documents confidentiels dans ChatGPT ?"],
  voir:['confidentiel','decide'],sit:"Au quotidien",act:"Un réglage dans ses outils",fx:'indirect',k:"donnees confidentialite scenario contrat rgpd entrainement reglages cnil chatgpt gemini vibe le chat mistral claude copilot compte entreprise",
- src:[["CNIL, Questions-réponses sur l'utilisation d'un système d'IA générative (2024)","https://cnil.fr/fr/les-questions-reponses-de-la-cnil-sur-lutilisation-dun-systeme-dia-generative"],["OpenAI, Data Controls FAQ (consulté en novembre 2026)","https://help.openai.com/en/articles/7730893-data-controls-faq"],["Mistral, désactiver l'utilisation des données pour l'entraînement (2026)","https://help.mistral.ai/en/articles/455207-can-i-opt-out-of-my-input-or-output-data-being-used-for-training"],["Arcep, IA et environnement (2026)","https://www.arcep.fr/uploads/tx_gspublication/rapport-IA-et-environnement_210526.pdf"]]},
+ src:[["CNIL, Questions-réponses sur l'utilisation d'un système d'IA générative (2024)","https://cnil.fr/fr/les-questions-reponses-de-la-cnil-sur-lutilisation-dun-systeme-dia-generative"],["OpenAI, Data Controls FAQ (consulté en novembre 2026)","https://help.openai.com/en/articles/7730893-data-controls-faq"],["Mistral, désactiver l'utilisation des données pour l'entraînement (2026)","https://help.mistral.ai/en/articles/455207-can-i-opt-out-of-my-input-or-output-data-being-used-for-training"]]},
 {id:'bilan',s:"Bilan carbone",c:'str',i:2,forme:'grille',large:'volume',verif:'2026-11',
  revoir:"Si la Base Empreinte de l'ADEME publie un facteur pour l'IA ou le cloud, si les calculateurs homologués par le CNC en 2026 ajoutent un poste IA, si EcoLogits couvre les images, ou si l'avis de l'ADEME de juillet 2026 est révisé.",
  t:"Rendre compte de l'IA dans le bilan carbone par les usages et les volumes, pas par un calcul au clic",
- txt:`<p>L'énergie consommée par une question posée à l'IA varie beaucoup selon le modèle et la réponse, et reste difficile à vérifier. Selon l'ADEME, mesurer un usage sur une année peut mieux refléter les émissions de gaz à effet de serre et inciter davantage à changer ses habitudes.</p><p>Le suivi peut rester proportionné. Les assistants de texte comme ChatGPT, Gemini ou Vibe (ex-Le Chat) consomment peu par question mais servent souvent : une estimation suffit en général, à partir du nombre d'utilisateurs et d'un usage moyen. Les usages qui demandent le plus de calcul se comptent plus précisément.</p>`,
+ txt:`<p>L'énergie consommée par une question posée à l'IA varie beaucoup selon le modèle et la réponse, et reste difficile à vérifier. Selon l'ADEME, mesurer un usage sur une année peut mieux refléter les émissions de gaz à effet de serre et inciter davantage à changer ses habitudes.</p><p>Le suivi peut rester proportionné. Les assistants de texte comme ChatGPT, Gemini ou Vibe (ex-Le Chat) consomment peu par question mais servent souvent : une estimation suffit en général, à partir du nombre d'utilisateurs et d'un usage moyen.</p>`,
  fig:{type:'checks',items:["Combien de vidéos et d'images ont été générées sur l'année ou sur la production, et en quelle définition ?","Combien d'heures les machines de la structure ont-elles servi à faire tourner l'IA ?","Dans quels pays se trouvent les serveurs des outils utilisés ?"]},
- persp:"L'ADEME n'a pas encore publié de valeur de référence pour convertir des volumes d'usage de l'IA en émissions. Quand un chiffre est demandé, un estimateur comme EcoLogits donne un ordre de grandeur, à présenter en fourchette et daté. Le résultat dépend aussi du pays des serveurs, selon la façon dont l'électricité y est produite.",
+ persp:"Quand un chiffre est demandé, un estimateur comme EcoLogits donne un ordre de grandeur, à présenter en fourchette et daté.",
  who:[['str',"La personne qui prépare le bilan carbone, souvent le référent RSE ou éco-production"]],req:[['str',"La direction, qui fixe le périmètre du bilan"],['pre',"Le diffuseur ou l'annonceur qui demande le bilan carbone d'une production"]],
  q:["Faut-il compter l'IA dans le bilan carbone d'une production ?","Comment suivre dans le temps l'usage de l'IA dans la structure sans tout chiffrer ?"],
  voir:['comparer','preuve'],sit:"Au moment de rendre compte",act:"Une règle d'équipe à fixer",fx:'indirect',k:"bilan carbone csrd mesure estimateur ecologits scope 3 volumes indicateurs requete calcul annuel serveurs pays gpu heures de calcul",
  src:[["ADEME, L'intelligence artificielle générative : des impacts environnementaux importants (2026)","https://librairie.ademe.fr/economie-circulaire-et-dechets/9495-11314-avis-de-l-ademe-l-intelligence-artificielle-generative-des-impacts-environnementaux-importants.html"],["Arcep, Intelligence artificielle générative : quels défis environnementaux ? (2026)","https://www.arcep.fr/uploads/tx_gspublication/rapport-IA-et-environnement_210526.pdf"],["Carbon Trust et DIMPACT, The carbon impact of AI video generation (2026) : indicateurs à suivre par les sociétés de production","https://www.carbontrust.com/sites/default/files/documents/resource/public/The%20carbon%20impact%20of%20AI%20video%20generation_The%20Carbon%20Trust%20and%20DIMPACT.pdf"],["EcoLogits, méthodologie (2026) : estimation en fourchette, texte et vidéo","https://ecologits.ai/latest/methodology/"]]},
-{id:"conso-clients",s:"Informer ses clients",c:'pre',t:"Pour un prestataire, donner à ses clients ce que consomme son outil d'IA",wip:1},
-{id:'publie',s:"Ce que publie l'outil",c:'eia',i:2,t:"Avant de souscrire à un outil d'IA, chercher ce que l'entreprise publie sur sa consommation, et tenir compte de son silence",
- ctx:"Usage concerné : achat d'un abonnement ou d'un service d'IA, pour une équipe ou un projet.",
- txt:`<p>Avant de choisir un outil, regarder ce que l'entreprise de l'IA publie : un rapport environnemental, une analyse de cycle de vie, un score de consommation de ses modèles. Pour un achat important, la même question peut aussi figurer dans l'appel d'offres ou le contrat.</p>`,
- fig:{type:'big',items:[["10 sur 13","grandes entreprises de l'IA évaluées fin 2025 ne publient aucune des données de base sur l'impact environnemental de leurs modèles"]]},
- persp:"Une page qui annonce seulement une électricité « 100 % renouvelable » ne donne pas la consommation. Pas de chiffre ne veut pas dire pas d'impact, et ce silence se compare d'un outil à l'autre.",
- who:[['str',"Le responsable technique ou des achats"]],req:[['str',"La direction"],['fil',"Les organisations de la filière"]],
- q:["Quels fournisseurs d'IA publient des informations sur leur impact ?","Quelles questions poser à un fournisseur d'IA avant de signer ?"],
- sit:"À l'achat d'un outil",act:"Une question à poser",fx:'indirect',k:"fournisseur entreprise achat transparence abonnement",
- src:"Stanford CRFM, Foundation Model Transparency Index (2025) ; DINUM, DAE et CGDD, fiche achat responsable de solutions d'IA (2025)."},
+{id:'conso-clients',s:"Volumes pour les clients",c:'pre',i:2,forme:'paires',verif:'2026-11',
+ revoir:"Si les entreprises de l'IA publient la consommation par usage dans un format commun, ou si les calculateurs de la filière (AdGreen, outils homologués par le CNC) ajoutent un poste IA avec ses propres données à saisir.",
+ t:"Pour un prestataire, donner à ses clients les volumes d'IA de chaque projet",
+ txt:`<p>Un client qui demande l'impact de l'IA utilisée sur son projet attend souvent un chiffre. Or les entreprises de l'IA donnent rarement la consommation de leurs modèles, même aux grands groupes de médias qui la leur demandent. Le prestataire a en revanche les volumes, qui pèsent le plus sur l'énergie consommée.</p>`,
+ fig:{type:'list',items:["Pour les images et les vidéos générées, le nombre, la définition et la durée, essais compris.","Pour les voix et les sons, les minutes générées.","Pour le texte, le nombre de requêtes, ou à défaut le nombre de personnes qui utilisent l'outil.","Sur les machines du prestataire, les heures de calcul, ou l'énergie relevée au compteur."]},
+ txt2:`<p>Quand le client veut un chiffre, des estimateurs gratuits donnent un ordre de grandeur, à présenter en fourchette et daté : EcoLogits pour un outil utilisé en ligne, CodeCarbon pour un calcul fait sur ses propres machines.</p>`,
+ tip:"Le récapitulatif de livraison peut par exemple indiquer : « IA sur ce projet : 1 200 images générées, 40 vidéos de 5 secondes en définition HD (720p) pour 3 plans retenus, 14 heures de calcul sur nos machines. »",
+ who:[['pre',"Le prestataire, qui livre le projet"]],req:[['pre',"Le client ou le diffuseur, qui peut le demander dès le devis"]],
+ q:["Mes clients me demandent l'impact de l'IA que j'intègre : quoi répondre ?","Comment présenter honnêtement l'impact de mon outil IA à mes clients ?"],
+ voir:['versions','bilan'],sit:"À la livraison d'un projet",act:"Une information à donner",fx:'indirect',k:"prestataire client livraison volumes images videos voix texte requetes minutes generees definition essais heures calcul compteur estimation ecologits codecarbon transparence fournisseur",
+ src:[["Carbon Trust et DIMPACT, The carbon impact of AI video generation (2026), p. 18 et 64","https://www.carbontrust.com/sites/default/files/documents/resource/public/The%20carbon%20impact%20of%20AI%20video%20generation_The%20Carbon%20Trust%20and%20DIMPACT.pdf"],["EcoLogits, méthodologie (2026)","https://ecologits.ai/latest/methodology/"],["CodeCarbon, méthodologie (2026)","https://docs.codecarbon.io/latest/explanation/methodology/"]]},
 {id:"serveurs-vie",s:"Vie des serveurs",c:'eia',t:"À la signature d'un contrat d'hébergement ou de rendu, demander la durée de vie des serveurs et leur devenir",wip:1},
 {id:"documentation",s:"Où tourne le calcul",c:'eia',t:"Vérifier dans la documentation d'un logiciel si ses fonctions d'IA tournent sur l'ordinateur ou en ligne",wip:1},
-{id:"promesses",s:"Promesses vertes",c:'eia',t:"Vérifier les promesses d'outils « verts »",wip:1},
-{id:'voix',s:"Demande commune",c:'fil',i:3,t:"Porter d'une seule voix, par les organisations de la filière, les demandes de données aux entreprises de l'IA",
- ctx:"Usage concerné : relations de la filière avec les grandes entreprises de l'IA.",
- txt:`<p>Une société de production seule ne pèse rien face à OpenAI ou Google. Une demande commune, avec les mêmes questions et le même format de réponse, a plus de chances d'aboutir. Le rapport du Carbon Trust pour la filière le recommande, et les groupes membres de DIMPACT, dont la BBC, ITV, Sky et Netflix, partagent déjà un outil de mesure depuis 2020.</p>`,
- persp:"L'ADEME appelle aussi à une méthode de mesure commune et à plus de transparence des grandes entreprises de l'IA. Les données obtenues servent à choisir entre les outils et à suivre les volumes.",
- who:[['fil',"Les organisations professionnelles"],['fil',"Les groupements de structures"]],req:[['pre',"Les diffuseurs"],['fil',"Les financeurs"]],
- q:["La filière peut-elle peser sur les géants de l'IA ?","Comment signaler à un fournisseur qu'on veut des données d'impact ?"],
- sit:"Dans les instances de la filière",act:"Une démarche à plusieurs",fx:'indirect',k:"filiere collectif transparence donnees fournisseurs",
- src:"Carbon Trust et DIMPACT (2026) ; ADEME, Avis sur l'IA générative (2026) ; Stanford CRFM (2025)."},
-{id:"methode",s:"Méthode commune",c:'fil',t:"Adopter une méthode commune et multicritère pour rendre compte de l'IA dans les bilans",wip:1},
+{id:'promesses',s:"Promesses vertes",c:'eia',i:2,forme:'paires',verif:'2026-11',
+ revoir:"Si une méthode commune d'affichage de l'impact de l'IA devient obligatoire, si un label public d'IA sobre apparaît, ou à la prochaine édition de l'indice de transparence de Stanford.",
+ t:"Vérifier les promesses d'outils « verts »",
+ txt:`<p>Aucun outil d'IA n'est sans impact : chacun consomme de l'énergie et du matériel. Quand une entreprise de l'IA présente son outil comme « vert » ou « frugal », la promesse se vérifie par ce qu'elle mesure.</p>`,
+ fig:{type:'list',items:["Une électricité « 100 % renouvelable » ne dit rien de l'énergie consommée, et repose souvent sur des certificats achetés. Pour l'entraînement de son modèle Llama 4, Meta déclare ainsi 1 999 tonnes d'équivalent CO2, ou zéro une fois ces achats déduits.","Un chiffre par question, comme celui publié par Google pour Gemini en 2025, porte sur une question de texte ordinaire, sans l'entraînement du modèle ni le nombre total de questions.","Le terme « IA frugale » renvoie souvent au référentiel de l'AFNOR (2024), qui est une méthode pour mesurer et réduire l'impact, pas un label."]},
+ txt2:`<p>Avant de choisir l'outil, ces trois questions peuvent être envoyées à l'entreprise :</p>`,
+ fig2:{type:'checks',items:["Quelle énergie l'outil consomme-t-il pour une image, une minute de vidéo ou une question ?","L'entraînement du modèle et la fabrication des serveurs sont-ils comptés ?","Dans quels pays se trouvent les serveurs ?"]},
+ persp:"Fin 2025, 10 des 13 grandes entreprises de l'IA évaluées par l'université Stanford ne publiaient aucune donnée sur l'impact environnemental de l'entraînement de leurs modèles.",
+ who:[['str',"La personne qui choisit ou achète l'outil"]],req:[['str',"La direction, qui paie les abonnements"]],
+ q:["Une IA “verte”, ça existe ?","Les offres d'“IA frugale” sont-elles sérieuses ?"],
+ voir:['preuve','chiffre'],sit:"Au choix d'un outil",act:"Une vérification à faire",fx:'indirect',k:"ia verte frugale promesse renouvelable garanties origine neutre carbone label afnor greenwashing ecoblanchiment fournisseur transparence stanford questions",
+ src:[["Stanford CRFM, Foundation Model Transparency Index (décembre 2025)","https://arxiv.org/html/2512.10169v1"],["Hugging Face, Misinformation by omission: the need for more environmental transparency in AI (2025)","https://huggingface.co/blog/sasha/environmental-impact-disclosures"],["Meta, fiche du modèle Llama 4 Scout (2025), émissions de l'entraînement","https://huggingface.co/meta-llama/Llama-4-Scout-17B-16E-Instruct"],["AFNOR Spec 2314, Référentiel général pour l'IA frugale (2024)","https://www.boutique.afnor.org/en-gb/standard/afnor-spec-2314/fa208976/421140"]]},
+{id:'voix',s:"Méthode et demande communes",c:'fil',i:3,forme:'liens',verif:'2026-11',
+ revoir:"Si des règles de calcul par catégorie de produit sont publiées pour l'IA, si l'AI Act rend publiques les données d'énergie des modèles, ou si les outils homologués par le CNC ajoutent un poste IA.",
+ t:"Adopter une méthode commune, et demander d'une seule voix les mêmes données aux entreprises de l'IA",
+ txt:`<p>Les calculateurs carbone de la filière n'ont pas de méthode commune pour l'IA. Tous manquent des mêmes données. En 2026, le Carbon Trust les a demandées aux entreprises de l'IA, dans un rapport financé par la BBC, Sky, Netflix et Spotify : il n'a obtenu aucune réponse sur le fond.</p><p>Le même rapport recommande à la filière de s'accorder sur le contenu et le format de ses demandes, et de faire établir des règles de calcul communes, qui comptent l'énergie, les émissions, l'eau et la fabrication du matériel. L'Arcep, le régulateur des télécoms, propose aussi d'imposer la transparence aux grands fournisseurs et d'en faire un critère des achats publics.</p>`,
+ fig:{type:'links',items:[["Carbon Trust, l'impact carbone de la vidéo générée par IA (2026)","https://www.carbontrust.com/sites/default/files/documents/resource/public/The%20carbon%20impact%20of%20AI%20video%20generation_The%20Carbon%20Trust%20and%20DIMPACT.pdf","Méthode de calcul, et liste des données à demander aux fournisseurs p. 66, en anglais"],["AFNOR, référentiel général pour l'IA frugale (2024)","https://www.boutique.afnor.org/en-gb/standard/afnor-spec-2314/fa208976/421140","Méthode française pour mesurer et réduire l'impact environnemental de l'IA"],["Arcep, IA générative : quels défis environnementaux ? (2026)","https://www.arcep.fr/actualites/actualites-et-communiques/detail/n/rapport-ia-et-environnement-210526.html","Neuf recommandations, dont la transparence des grands fournisseurs"]]},
+ who:[['fil',"Les organisations professionnelles et les associations de la filière"],['fil',"Les éditeurs de calculateurs carbone"]],req:[['fil',"Les financeurs, comme le CNC, qui homologuent les calculateurs"]],
+ q:["La filière peut-elle peser sur les géants de l'IA ?","Existe-t-il une position commune de la filière sur l'IA et l'environnement ?"],
+ voir:['bilan','chiffre'],sit:"Dans les instances de la filière",act:"Une démarche à plusieurs",fx:'indirect',k:"filiere collectif methode commune multicritere demande donnees fournisseurs calculateur adgreen cnc homologation pcr arcep carbon trust dimpact syndicat position",
+ src:[["Carbon Trust et DIMPACT, The carbon impact of AI video generation (2026), p. 18 et 66","https://www.carbontrust.com/sites/default/files/documents/resource/public/The%20carbon%20impact%20of%20AI%20video%20generation_The%20Carbon%20Trust%20and%20DIMPACT.pdf"],["Arcep, IA générative : quels défis environnementaux ? (2026)","https://www.arcep.fr/uploads/tx_gspublication/rapport-IA-et-environnement_210526.pdf"]]},
 {id:"volume",s:"Volume de la filière",c:'fil',t:"Suivre le volume de contenus créés par l'IA dans la filière, pour mesurer l'effet rebond",wip:1},
 {id:"aides",s:"Aides publiques",c:'fil',t:"Faire entrer l'IA dans les conditions des aides publiques",wip:1},
 {id:'rex',s:"Retours d'expérience",c:'fil',i:1,t:"Partager les retours d'expérience entre structures",
@@ -607,13 +628,15 @@ const ALLCARDS=[
 const NQ={"besoin": 57, "comparer": 30, "essais": 16, "outil": 32, "reflexion": 9, "court": 13, "conversation": 2, "connect": 0, "desactiver": 11, "confidentiel": 18, "chiffre": 15, "versions": 7, "une-fois": 6, "etape": 4, "preuve": 21, "avant-apres": 6, "cycle": 9, "trace": 13, "devis": 6, "metadonnees": 1, "decide": 17, "reglages": 9, "former": 13, "lourds": 0, "seuil": 1, "tester": 8, "automatisation": 6, "agent": 14, "reutiliser": 5, "savoir-faire": 4, "stations": 8, "pays": 5, "fichiers": 3, "compression": 2, "donnees": 20, "bilan": 17, "conso-clients": 6, "publie": 8, "serveurs-vie": 6, "documentation": 5, "promesses": 6, "voix": 9, "methode": 2, "volume": 7, "aides": 3, "rex": 3, "signaler": 1};
 const SHOW_RED=false;
 // Cartes revues avec le skill cartes-recos-ia ; les autres sont grisées et rangées en fin de catégorie.
-const REVUES=['besoin','outil','preuve','comparer','donnees','confidentiel','decide','bilan','essais','chiffre','versions'];
+const REVUES=['besoin','outil','preuve','comparer','donnees','confidentiel','decide','bilan','essais','chiffre','versions','conso-clients','promesses','voix'];
 const dim=x=>x.wip||!REVUES.includes(x.id)?1:0;
 /* Mode travail : WORK liste les cartes en cours ; vide, la page s'affiche normalement */
 const WORK=[];
 /* Carte pas encore rédigée et vérifiée : seul son titre s'affiche (choix d'Adrien, 3 novembre) */
 const blank=x=>dim(x)&&!WORK.includes(x.id);
-const CARDS=ALLCARDS.filter(x=>SHOW_RED||!x.red);
+/* Cartes masquées, au moins le temps de la présentation (choix d'Adrien, 3 novembre 2026) */
+const MASQUEES=['savoir-faire','une-fois','stations','compression','fichiers','lourds','cycle','metadonnees','connect'];
+const CARDS=ALLCARDS.filter(x=>(SHOW_RED||!x.red)&&!MASQUEES.includes(x.id));
 
 const BY=Object.fromEntries(CARDS.map(x=>[x.id,x]));
 const $=id=>document.getElementById(id);
@@ -882,7 +905,7 @@ function openCard(id,from){
   /* La face cachée sort de la mise en page après le retournement, pour que la carte prenne la hauteur de la face visible */
   card.querySelectorAll('[data-flip]').forEach(b=>b.addEventListener('click',()=>{
     card.querySelectorAll('.face').forEach(f=>f.classList.remove('cl'));void card.offsetHeight;
-    const on=card.classList.toggle('flipped');m.scrollTop=0;
+    const on=card.classList.toggle('flipped');m.scrollTop=0;setTimeout(fade,560);
     clearTimeout(card._t);card._t=setTimeout(()=>card.querySelector(on?'.front':'.back').classList.add('cl'),520);
     card.querySelector('.front').setAttribute('aria-hidden',String(on));card.querySelector('.back').setAttribute('aria-hidden',String(!on));
     card.querySelector(on?'.back [data-flip]':'.front [data-flip]').focus();}));
@@ -891,9 +914,12 @@ function openCard(id,from){
     card.querySelectorAll('[data-fav]').forEach(f=>{f.setAttribute('aria-pressed',String(on));f.setAttribute('aria-label',on?'Retirer de mes cartes':'Ajouter à mes cartes');});}));
   card.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeCard));
   card.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>openCard(b.dataset.go,b)));
-  m.scrollTop=0;const keep=from&&from.closest&&from.closest('.icons')?from.getAttribute('aria-label'):null;
+  m.scrollTop=0;fade();setTimeout(fade,560);const keep=from&&from.closest&&from.closest('.icons')?from.getAttribute('aria-label'):null;
   const f=keep?[...card.querySelectorAll('.front .icons button')].find(b=>b.getAttribute('aria-label')===keep):null;(f||card.querySelector('.front [data-close]')).focus();
 }
+/* Le dégradé disparaît quand le bas de la carte est atteint */
+function fade(){const m=$('modal');m.classList.toggle('end',m.scrollTop+m.clientHeight>=m.scrollHeight-2);}
+$('modal').addEventListener('scroll',fade);
 function closeCard(){try{history.replaceState(null,'',location.pathname+location.search);}catch(e){location.hash='';}
   $('ov').hidden=true;$('modal').innerHTML='';document.body.style.overflow='';if(opener&&document.contains(opener))opener.focus();}
 $('ov').addEventListener('click',e=>{if(e.target===$('ov'))closeCard();});

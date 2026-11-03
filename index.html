@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Bonnes pratiques IA - Ecoprod</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Raleway:wght@600;700&display=swap">
+<style>
+/* Mise en page : en-tête du site Ecoprod, puis l'outil sur toute la hauteur de l'écran.
+   Vue « Qui peut agir » : quatre niveaux emboîtés (Individu, Projet, Structure, Filière) dessinés par les cartes elles-mêmes, chacune un nom court posé sur l'ellipse de son niveau ; nom du niveau en haut de l'ellipse ; ni fond ni trait.
+   Vue Cartes : les six niveaux à la suite, trois cartes visibles par niveau, le reste à déplier. La carte ouverte passe au premier plan, la page derrière est blanchie et floutée. */
+:root{
+  --white:#ffffff;--paper:#f2f2eb;--ink:#1b1d12;--ink-2:#5b5f4c;--ink-3:#8a8d79;--line:#e6e7dc;--olive:#3D4712;--active:#7f8a1c;
+  --c-ind:#3D4712;--c-pro:#7A7A38;--c-str:#BDC609;--c-pre:#6ECACC;--c-eia:#C2AFF0;--c-fil:#9A9D88;--c-red:#FA003F;--red-ink:#cf0034;
+  --t-ind:#e4e6d8;--t-pro:#ececdf;--t-str:#f4f6d4;--t-pre:#e0f4f4;--t-eia:#efe9fb;--t-fil:#ecede5;--t-red:#fee3ea;
+  --head:"Raleway",system-ui,sans-serif;--body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --navh:120px;
+  color-scheme:light;
+}
+html,body{background:var(--white)}
+body{color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+button{font:inherit;color:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--olive);outline-offset:2px}
+
+/* En-tête du site */
+.navwrap{padding-block:14px 10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+nav{max-width:1900px;margin:0 auto;display:flex;align-items:center;gap:clamp(8px,.85vw,20px);border:1px solid var(--line);border-radius:22px;padding:14px clamp(16px,1.8vw,30px);background:var(--white)}
+.logo{display:block;flex:none;line-height:0}
+.logo img{height:clamp(20px,1.7vw,26px);width:auto}
+.menu{display:flex;gap:clamp(10px,1.05vw,28px);margin-left:auto;font-size:clamp(13px,.98vw,16px);white-space:nowrap;align-items:center}
+.menu a{color:var(--ink);text-decoration:none;display:flex;align-items:center;gap:6px}
+.menu a.on{color:var(--active)}
+.menu svg{width:11px;height:11px}
+.pill{border-radius:999px;padding:10px clamp(12px,1.1vw,20px);font-size:clamp(13px,.98vw,16px);text-decoration:none;white-space:nowrap}
+.pill.l{background:var(--paper);color:var(--ink)}
+.pill.d{background:var(--olive);color:#fff}
+.lang{display:flex;align-items:center;gap:5px;color:var(--ink)}
+.flag{display:flex;width:20px;height:13px;border-radius:2px;overflow:hidden}
+.flag i{flex:1}
+.srch,.burger{width:22px;height:22px;flex:none}
+.burger{display:none}
+@media (max-width:1200px){.pill.l{display:none}}
+@media (max-width:1080px){.menu{display:none}.pill.l{margin-left:auto}.burger{display:block}}
+@media (max-width:640px){.pill,.lang{display:none}.srch{margin-left:auto}nav{padding:14px 18px}.logo img{height:22px}}
+
+/* Outil */
+.tool{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 20px}
+.tool-in{max-width:1900px;margin:0 auto;display:grid;gap:10px}
+.bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.sbox{flex:1 1 360px;max-width:720px;display:flex;align-items:center;gap:10px;background:var(--paper);border-radius:999px;min-height:46px;padding:0 20px;color:var(--olive)}
+.sbox input{border:0;background:transparent;font:inherit;color:var(--ink);flex:1;min-width:0;outline:none}
+.sbox input::placeholder{color:var(--ink-3)}
+.sbox:focus-within{box-shadow:0 0 0 2px var(--olive) inset}
+.seg{display:flex;gap:4px;background:var(--paper);border-radius:999px;padding:4px;margin-left:auto}
+.seg button{border:0;background:transparent;border-radius:999px;min-height:38px;padding:0 18px;font-size:14px;cursor:pointer;color:var(--olive)}
+.seg button[aria-pressed="true"]{background:var(--olive);color:#fff}
+.cap{font-size:13px;color:var(--ink-2);margin:0}
+.cap:empty{display:none}
+
+/* Vue « Qui peut agir » : façon radar, schéma à gauche, noms à droite */
+.ring-view{display:grid;grid-template-columns:minmax(0,1fr);height:var(--rvh,calc(100dvh - var(--navh) - 90px));min-height:440px}
+.ring-view[hidden]{display:none}
+.radar{position:relative;min-height:0}
+.lvl{position:absolute;left:0;top:0;font-family:var(--head);font-size:13.5px;font-weight:700;color:var(--ink);background:var(--white);border:2px solid var(--c);border-radius:999px;padding:5px 12px;white-space:nowrap;pointer-events:none;transition:opacity .2s;line-height:1.1}
+.dot{position:absolute;left:0;top:0;width:var(--d);height:var(--d);border:0;padding:0;border-radius:50%;background:var(--c);cursor:pointer;transition:opacity .2s,transform .15s}
+.dot::after{content:"";position:absolute;inset:-4px;border-radius:50%}
+@media (pointer:coarse){.dot::after{inset:-9px}}
+.dot.on{box-shadow:0 0 0 3px var(--white),0 0 0 5px var(--c)}
+.dot:focus-visible{outline:none;box-shadow:0 0 0 3px var(--white),0 0 0 5px var(--olive)}
+.names{display:none;min-height:0;overflow:auto;columns:180px 3;column-gap:clamp(14px,1.6vw,28px);align-self:center;max-height:100%;padding-block:4px}
+.names h3{display:flex;align-items:baseline;gap:8px;margin:0 0 4px;font-family:var(--head);font-size:15px;break-after:avoid;cursor:default;transition:opacity .2s}
+.ng+.ng h3{margin-top:14px}.ng.keep{break-inside:avoid}
+.names h3 small{font-family:var(--body);font-weight:400;font-size:12.5px;color:var(--ink-3)}
+.nm{display:flex;align-items:center;gap:8px;width:100%;border:0;background:transparent;border-radius:6px;padding:2px 6px 2px 0;font-size:13.5px;line-height:1.35;white-space:nowrap;color:var(--ink);text-align:left;cursor:pointer;break-inside:avoid;transition:opacity .2s,background-color .15s}
+.nm i{width:8px;height:8px;border-radius:50%;background:var(--c);flex:none}
+.nm.red{color:var(--red-ink)}
+.nm.on,.nm:hover{background:var(--paper)}
+.focus .dot:not(.same),.focus .nm:not(.same),.focus .lvl:not(.same),.focus .names h3:not(.same){opacity:.22}
+.searching .dot:not(.hit),.searching .nm:not(.hit){opacity:.12}
+@media (max-width:1200px){.nm{white-space:normal}}
+@media (max-width:1000px){.ring-view{height:auto}.radar{height:min(86vw,560px)}}
+.tip{position:absolute;z-index:5;max-width:280px;background:var(--white);border-radius:12px;padding:10px 13px;box-shadow:0 4px 18px rgba(27,29,18,.16);pointer-events:none;font-size:13.5px;line-height:1.35;opacity:0;transition:opacity .12s}
+.tip.on{opacity:1}
+.tip b{display:flex;align-items:center;gap:6px;font-family:var(--head);font-size:13px;margin-bottom:3px}
+.tip b i{width:8px;height:8px;border-radius:50%}
+.tip .rk{color:var(--red-ink);font-size:12.5px;display:block;margin-bottom:2px}
+.tip .av{display:block;color:var(--ink-2);font-size:12.5px;margin-top:4px}
+
+/* Vue Cartes */
+.list-view{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 16px;align-items:start}
+@media (max-width:1000px){.list-view{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.list-view{grid-template-columns:1fr}}
+.list-view[hidden]{display:none}
+.grp{display:grid;gap:8px;min-width:0;background:var(--t);border-radius:16px;padding:14px}
+.grp-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.grp-h h2{font-family:var(--head);font-size:17px;font-weight:700;margin:0;display:flex;align-items:center;gap:8px}
+.grp-h h2 i{width:10px;height:10px;border-radius:50%}
+.grp-h span{font-size:13px;color:var(--ink-2)}
+.tiles{display:grid;gap:6px}
+.tile{display:grid;gap:3px;text-align:left;border:0;background:var(--white);color:var(--ink);border-radius:10px;padding:10px 12px;cursor:pointer;min-width:0;transition:box-shadow .15s}
+.tile:hover{box-shadow:0 0 0 2px var(--c)}
+.tile.red{border-color:var(--c-red)}
+.tile .k{font-size:12px;color:var(--ink-2);display:flex;align-items:center;gap:7px}
+.tile .k i{width:9px;height:9px;border-radius:50%;background:var(--c);flex:none}
+.tile.red .k{color:var(--red-ink)}
+.tile.red .k i{background:var(--c-red)}
+.tile h3{font-family:var(--head);font-size:14.5px;line-height:1.3;font-weight:700;margin:0}
+.tile .s{font-size:13px;color:var(--ink-2)}
+.tile[hidden]{display:none}
+.tile.wip{background:transparent;color:var(--ink-3);padding-block:6px}
+.tile.wip h3{font-weight:500;font-size:13.5px}
+.grp-r{background:var(--paper)}
+.grp-r .tiles{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.list-view .grp-r{grid-column:1/-1}
+.dot.wip{opacity:.35}
+.more{justify-self:start;border:0;background:transparent;border-radius:999px;min-height:36px;padding:0 4px;font-size:13.5px;color:var(--olive);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.searching-l .tile:not(.hit){display:none}
+
+/* Carte ouverte, au premier plan */
+.overlay{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:rgba(255,255,255,.72);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+.overlay[hidden]{display:none}
+.modal{width:min(640px,100%);max-height:calc(100dvh - 32px);overflow:auto;border-radius:22px;box-shadow:0 18px 50px rgba(27,29,18,.18)}
+.card{perspective:1600px;min-width:0}
+.inner{display:grid;transition:transform .5s cubic-bezier(.2,.7,.2,1);transform-style:preserve-3d}
+.card.flipped .inner{transform:rotateY(180deg)}
+.face{grid-area:1/1;position:relative;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--white);border:2px solid var(--c);border-radius:22px;padding:26px 26px 18px;display:grid;gap:18px;align-content:start;min-width:0}
+.back{transform:rotateY(180deg);grid-template-rows:auto 1fr auto;gap:24px;text-align:center;justify-items:center;padding-block:52px 26px}
+.icons{position:absolute;top:8px;right:8px;display:flex;gap:2px}
+.icons button{width:44px;height:44px;border:0;background:transparent;border-radius:50%;color:var(--ink-3);cursor:pointer;display:grid;place-items:center}
+.icons button:hover{color:var(--ink)}
+.icons svg{width:18px;height:18px}
+.hd{display:grid;gap:6px;padding-right:170px}
+@media (max-width:520px){.hd{padding-right:0;padding-top:34px}}
+.kind{font-size:13px;color:var(--red-ink);font-weight:500;margin:0}
+.avec{display:flex;align-items:center;gap:7px;font-size:13.5px;color:var(--ink-2)}
+.avec i{width:9px;height:9px;border-radius:50%;flex:none}
+.face h2{font-family:var(--head);font-size:22px;line-height:1.22;margin:0;font-weight:700;text-wrap:balance}
+.back h2{font-size:26px;max-width:20ch}
+.face p{margin:0;max-width:62ch}
+.txt{display:grid;gap:9px}
+.txt ul{margin:0;padding:0;list-style:none;display:grid;gap:5px}
+.txt li{padding-left:14px;position:relative}
+.txt li::before{content:"-";position:absolute;left:0}
+.sm{font-size:13.5px;line-height:1.45;color:var(--ink-2)}
+.box{background:var(--t);border-radius:12px;padding:14px 16px}
+.box p{font-size:14px;line-height:1.45}
+.tip{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;border-left:3px solid var(--c);padding:4px 0 4px 12px}
+.tip svg{width:20px;height:20px;color:var(--c);margin-top:1px}
+.tip p{font-size:14px;line-height:1.45;margin:0}
+.who{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:10px 14px;align-items:baseline}
+.who .chips{display:flex;flex-wrap:wrap;gap:5px}
+@media (max-width:480px){.who{grid-template-columns:1fr;gap:4px}}
+.chip{font-size:13.5px;line-height:1.3;border-radius:6px;padding:5px 9px;background:var(--tc);color:var(--ink)}
+.chip.a{background:var(--cc);color:var(--fc)}
+.src{font-size:11.5px;line-height:1.45;color:var(--ink-3);margin:0}
+/* Sources repliées : une ligne discrète, la liste à l'ouverture */
+.srcs{font-size:12px;color:var(--ink-3)}
+.srcs summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:6px;min-height:32px}
+.srcs summary::-webkit-details-marker{display:none}
+.srcs summary::after{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .15s}
+.srcs[open] summary::after{transform:rotate(-135deg) translateY(-1px)}
+.srcs summary:hover{color:var(--ink-2)}
+.srcs ul{margin:4px 0 0;padding:0;list-style:none;display:grid;gap:5px;line-height:1.4}
+.srcs a{color:inherit;text-underline-offset:2px}
+.go{display:flex;flex-wrap:wrap;gap:6px}
+.go button{display:flex;gap:8px;align-items:center;border:0;background:var(--paper);border-radius:8px;min-height:38px;padding:7px 12px;font-size:13.5px;cursor:pointer;text-align:left}
+.go button i{width:9px;height:9px;border-radius:50%;flex:none}
+.fig{display:grid;gap:12px;background:var(--paper);border-radius:14px;padding:18px}
+.bars{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:8px 14px;align-items:center}
+.bars>span{font-size:13.5px;color:var(--ink-2)}
+.track{position:relative;height:20px}
+.barf{position:absolute;top:0;bottom:0;border-radius:3px;background:var(--c);min-width:3px}
+.val{position:absolute;top:50%;translate:0 -50%;font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.val.in{color:var(--fc)}
+@media (max-width:560px){.bars{grid-template-columns:1fr;gap:2px 0}.bars>span{margin-top:8px}.track{height:auto;display:flex;flex-direction:column-reverse;gap:4px}.barf{position:relative;display:block;height:14px}.val{position:static;translate:none;white-space:normal;right:auto!important;left:auto!important}.val.in{color:var(--ink)}}
+.big{display:flex;flex-wrap:wrap;gap:14px 34px;align-items:baseline}
+.big div{display:grid;gap:2px}
+.big b{font-family:var(--head);font-size:40px;line-height:1;font-weight:700;color:var(--cb);font-variant-numeric:tabular-nums}
+.big.one{display:block;text-align:center;padding:14px 8px 6px}
+.big.one div{justify-items:center;gap:10px}
+.big.one b{font-size:clamp(30px,9vw,52px);white-space:nowrap}
+.big b sup{font-size:.45em;vertical-align:super;line-height:0;margin-left:2px}
+.fig:has(.big.one)>p{text-align:center}
+.big.one .sm{max-width:38ch;line-height:1.45}
+.pairs{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:9px 16px;font-size:14px;line-height:1.4}
+.pairs .ph{font-size:12.5px;color:var(--ink-2)}
+.pairs>span:nth-child(odd):not(.ph){font-weight:500}
+.eq{margin:0;padding:0;list-style:none;display:grid;gap:9px;font-size:14.5px;line-height:1.45}
+.eq li{padding-left:14px;position:relative}
+.eq li::before{content:"-";position:absolute;left:0}
+.checks{margin:0;padding:0;list-style:none;display:grid;gap:10px;counter-reset:ck}
+.checks li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:baseline;font-size:14.5px;line-height:1.4}
+.checks li::before{counter-increment:ck;content:counter(ck);font-family:var(--head);font-weight:700;font-size:15px;color:var(--cb)}
+.links{display:grid;gap:10px}
+.links a{display:grid;gap:2px;color:var(--ink);text-decoration:none}
+.links a b{font-weight:500;text-decoration:underline;text-underline-offset:3px}
+.txt ol{margin:0;padding-left:20px;display:grid;gap:5px}
+.qs{display:grid;gap:6px;align-self:center;justify-items:center}
+.qs p{font-size:15px;color:var(--ink-2)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:440px}
+.tag{font-size:13.5px;line-height:1.3;border-radius:999px;padding:6px 12px;background:var(--paper)}
+.tag.sc{background:var(--c);color:var(--fc)}
+.tag.sc.red{background:var(--red-ink);color:#fff}
+@media (prefers-reduced-motion:reduce){.inner{transition:none}}
+
+/* Lien d'évitement, sous-menus, pied de page : repris du site ecoprod.com */
+.skip{position:absolute;left:12px;top:-60px;z-index:50;background:var(--olive);color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none}
+.skip:focus{top:10px}
+nav{position:relative;z-index:20}
+.dd{position:relative;display:flex}
+.sub{position:absolute;top:calc(100% + 12px);left:-16px;min-width:230px;list-style:none;margin:0;padding:10px;background:var(--white);border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 10px rgba(27,29,18,.06);display:none;white-space:nowrap}
+.sub::before{content:"";position:absolute;left:0;right:0;top:-14px;height:14px}
+.dd:hover>.sub,.dd:focus-within>.sub{display:block}
+.sub li a{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:14.5px}
+.sub li a:hover,.sub li a:focus-visible{background:var(--paper)}
+.sub .gh{padding:9px 10px 3px;font-size:12.5px;color:var(--ink-2);font-weight:600}
+.lang>a{display:flex;align-items:center;gap:5px;color:var(--ink);text-decoration:none}
+.sub.sm{left:auto;right:-10px;min-width:0}
+.about{padding:56px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px));border-top:1px solid var(--line)}
+.about-in{max-width:760px;margin:0 auto;display:grid;gap:12px}
+.about h1{font-family:var(--head);font-size:clamp(26px,2.4vw,34px);margin:0;line-height:1.15}
+.about .ver{margin:-4px 0 4px;color:var(--ink-2);font-size:14px}
+.about p{margin:0;line-height:1.6}
+.about a{color:var(--olive);text-underline-offset:3px}
+.foot{background:var(--paper);padding:40px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px))}
+.foot-in{max-width:1900px;margin:0 auto;display:grid;grid-template-columns:minmax(0,2fr) repeat(2,minmax(0,1fr));gap:28px 40px}
+.f-id{display:grid;gap:12px;justify-items:start;align-content:start}
+.f-id img{height:26px;width:auto}
+.f-id .pill{display:inline-block;line-height:1.2}
+body{margin:0}
+.f-id p,.f-fund{margin:0;color:var(--ink-2);font-size:14px;line-height:1.5}
+.f-col{display:grid;gap:6px;align-content:start}
+.f-col h2{font-family:var(--head);font-size:15px;margin:0 0 4px}
+.f-col a,.f-legal a{color:var(--ink);text-decoration:none;font-size:14px}
+.f-col a:hover,.f-legal a:hover{text-decoration:underline}
+.f-fund{grid-column:1/-1}
+.f-legal{max-width:1900px;margin:28px auto 0;padding-top:16px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;font-size:13.5px;color:var(--ink-2)}
+.totop{margin-left:auto;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--white)}
+@media (max-width:760px){.foot-in{grid-template-columns:1fr 1fr}.f-id{grid-column:1/-1}}
+/* Mode travail : seule la carte en cours, recto et verso côte à côte */
+.work .navwrap,.work .tool,.work .about,.work .foot,.work .skip{display:none}
+.wk{max-width:1240px;margin:0 auto;padding:28px max(16px,env(safe-area-inset-left,0px)) 40px;display:grid;gap:36px}
+.wk-card{display:grid;gap:10px}
+.wk-card .inner{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;transform:none!important}
+.wk-card .face{grid-area:auto;backface-visibility:visible;-webkit-backface-visibility:visible}
+.wk-card .back{transform:none}
+.wk-card .icons{display:none}
+.wk-card .hd{padding-right:0}
+.wk-meta{font-size:13px;color:var(--ink-2);display:grid;gap:2px}
+@media (max-width:900px){.wk-card .inner{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<a class="skip" href="#contenu">Aller au contenu</a>
+<div class="navwrap" id="top">
+  <nav aria-label="Navigation principale">
+    <a class="logo" href="https://ecoprod.com/" aria-label="Ecoprod, accueil"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAA9CAYAAACDSj9IAABMJklEQVR42u29eXxdV3ku/Dxr7X0GHc2e4iRAEuY4hQSbxLFlS4rHjEyRKaUUwqUUaGkZS2l7kVXKHIZSSC9pb3vLUEBqGPJl8CzJlu0MVggQmwAhCSSQeNKsM+291vv9sfeWj+VzpCNZSiSa9fs5g6Wzz1p7rfWOz/u8xLMw2tuht2yB2b4/tTgZM28T4Q3GyssprNSOHBPie8OZ+Nbr1gz2i4AkBM+N58Zz47nx3JhTQz9byqPzYMVNsZj9jhtTbwDwfGuZtAINsrqiQl1BMZv++O3xH1x0vjcKQHV3P6dEnhvPjefGc2MuDeeZ/DIRaBJm94HkzdU1+ODIKDE6IoYEgeCP8SFDg+ItWMhLTxy3XyLxpvZ2qFmaDwGwowNctAgc//PjTRB0AIcPQ9raIMDcVWIi4Nat4LJlYEsL0NV1+nqamiAdc3gtk80fAI4fh7S0BHOfRa80OovPyLJL/Pf/5PnP5iAAtrQE7+fYsTPf0+LFkIsvntU78kzuT7G9kplezDPqeezsSXx4wQL12f5+8UKFoooIE9EaYi3SOV9fdM3akeMzEcoSAbu6Aq+ruRn+dNawaBHY1ARLwj7bArejA2q684nW0tUE2/YsrUUEqqsL6vhxyJYtMFP9fGcnnKYmCAD7exDmZEsL1LFj4OLFkI4O2HkilKOhGhuDuzyX5t/aGpyxcE5TPWNsbISep/sx6TsBgO4mWLRN//7zGVMeLbC77kn9QcyxD1gLMQZKBCimQMKNogjEKrNs45X5n7UK1HQFXXt7oDTGC6md91YtcGiXivhLxHABKCkRFSdpxNiMclR/zJWjAH63+lWZpwuFdKSMmppgnknh1doK1dQENV4BHjiApHHiSz2fS6G4kJBqMSppRZRSkoHigOvgqLXyWzuafarw86Enpp4JQRy9t/HzP3QIbgaJpQIuzeexWEGqrVVJRSgqk6dSo2JsP+EcTdaq311x8fDJcvZ4indBll+3tKIO2YWZ7OzuYzxOk8m7HpN+5rz4yXQx4dbaCnXkCFim8CIAWXXDgqoKa+tme/4mTuOYWF5XmUzTxcfTbUWEUEtLsCfPgvBlYyN0d/fpZ6ylBbETo7VLjeG5oCy0QA2FCREoknlFjBqwzxX7dEbMU/fsGOobv57QO7HTPV8bNixJSTy/YLb357Qwk0ObN24+lrfp7u7jIxO8LzPVfeIz6n3sT9xeXaWuHxoWXxFOIglk0oGyIE/3QBwH4hsZ0sn4hc2XDQ5MxwNpb4duaTklFHcdSJ7naGkk2WStLBfgAgjrXRdQGtCKoApeobUCYwDPA0QwQuC3VPgJFfYqqzrXXDF6eHxobtY9DkBtCb/nrrsQr1yYWCnCqyxwpVi8DMASrRHTDqAVoBQBAmIBYwSeB1iLURK/JeUnSrNTWbO74fL8z8femUBvmaW1jH9PPfdWXGpo11uLNQCXicVSKlTEE0A8RmgHIAFrg33I5QT5HCwpA0rhMUL1gnZPzOiuK68cPRoJ3a1bgWl4iAQgDRvr79QOGo0vBhzLEWoIZ/SukGIh8EFkAA4COEbgcQEOA/JAwsZ+tHPn0WOFwmsCQUwAaGyENvH6vVrjFdaIlVPG2czPH2IBeMH8MQjhUZCPKdiHrFK9SeM9uKNAAIfzN7Mta8Z/T8O1C5crI+sBaYBgmUDOIZlUmlCKKHwr1gqsAawRA2IAkEepeIiCPQb57p5tI8ejM9YGYIqWe3C+NtVt15qrZ/t8FTlrngBpEn0EnhTiZwrqkCHv67n7xC/KPGczr0CiPEL0v+OFfKDdYbsOxl4MpY9YCxUqDBojhxyHK6yFWAsDQJEQEfgLFjJ+4oT92obV2XdFCmiq4Z3oM10HK65Rjn27sdxQkWQ1CXieIJsNBFQiASgVCCnfD/7OcQHHIawR5HLBzxOJQMGMjohRCgcV+I3hE+nvXHMNhgrXOuMKuECodx6Iv0i56iYIWrTGi+NxwjeCXBYwJliLdgjfF/iB8oPWgOsGCsXzBL4BEnFCaWB0RDytsM9A/t/jo9mOm5qRjfIRbW0zs5ZQqAsJuesuVFcuTr5ZrLzVCq+oTBG+AXJZgesCjkuMjghE5JiAfRDxSKZALErEUeW4RDYjoArWYAXIZqUPwN0UubXxiuzes1HqazbV/zqe1M83vgUZvD9rAuFClukGlBlpjkQGGQgyhuJeLGCN9IM4AKLdd/n9A7efHA5eJlQRwUUAsnkz4iNSdyKRcCqttdFdgDECsSh//lKuYCo+f2sBMXKc5D5R9rsc7b+9uxvZgvj/zIdMC95Lw7U1dcrXbwHxJwCWa4fhPkqgNBTgewKBHAXQB6EPohKQxY5WKTJ4Z2RwRyCAb+QEIXdAcOve7f0Hp6sUGzbW/S5R4Sw9/XwJ7FT2ZzqZDIYvP1Sa5Ni6PFJ6KbjNWnx3347+J6ayNp6l4lDjL+l4IdrZCae5Gf6eg4kPVFWpzw8OSj6VYiydlg+sW5X54u79iQ9VVKrPKQKeL1AEEklioF8OMpu5pqsLQ5HwKTeuHn3/7nviGx2lPubGuFopIJMWWAMjgAXByko6mbTkAdktgt0W6oiC9IkVTc1FgCxTYLMAzfEEdHoUeRCKgJNMBgomm5XHxeDze+7O3NLWBjvDFjzb2wNFeHd3xdJU0v6tgDdVVDCVzQpyOQgIA4FNJhHzfcBY9MByJ5X8xBo5JqQvxlYrF89XwsuhuDGR4IXpURFr4WsNN5EEtCZyWfmZNfLpppXZrxd6jjPhfQJA9/3JPyPxkUSCF3r5QIFbC08pqFQldS4jPxORb0JxZ9Z3fzV05dDgFsJ0diKhUolFAl4KizcIsSUWQzKTRg6A4zjQyQrCywvEyh0mrz7WtDr9o0LFVU4MH4Bt2FB/oxPjK31fMhBJgrxQUa5SSi31fTElQq5n7Fvk/U2U0hSRSFh7EMiYxyBQSkEpHaBLjJXHKfjyyPG+r/T2witxuQlA1myof6t2+CLfSJaUpIAvIrFBK9b7vtgQsDKT8xcIfODM+WsdPMBY+Tkhn+++u/9fZ8MbKXieWrup/i+g5MNaq/NtoIghAo+E1g6VMfJTJfINI3oPXO/RpRWDQx0dMI2NL0jkU4NLYqIvE8iNsLhRacZ93+YAOkpBa4ewway/n/ftxw7u7H+otRWqzIR7sD8b696otbrEt5IBJUnhRQDWac0lM3q+Sp01gTe2V4GO1FoHStX4MgDK//M99bkDu07+rhxvhNNVHtGl7OxEwqlIvRCuOLt+mD7c1ga/8OeRANlzIHFbsoKv930gl5N716/OrjxVDxK/qiKu3mGMvITkkFJy5yM/zX71ppsCa7hc5RE9r31nXc2S6uwXnBjeTgDpdPASSKgwPKZcF/B8/Key5rNrV+aPTPTcznsrLlXKtiXi6obRUTGhFyUAJBaDTiaJTEYO5Eb9d21o8n4aKc2ZQCW1tcHuOZB4sxvDzYmEOmd4WGAFPgOBpwCYyirqbEb2iZW/a1qZ3TfRcx98EKnBbPJtVPgEFWqyWdjQkpR4HDoeJ7JZ2T40YN9z3Ybco2ezluizP+yMv6iuUn0tmeRVmYwg78GHBBfFdaEAeEL5exnJfrm5GZNGh3fdE7vYUfoLySQ3jQyLkeBZFgArq6jyOclbK//QdEX2E2Mhh7Pwptatq1rgxZz/o5S60ffElnHJrUB+TqEnxOmnlwAFIpQYBLUkFztOYLv7vkAEhkFoQ0SCOStNrTVgjdxvcvYdPXsGfjIVIXzVtfXn+T7+U2muC5WImuTsGQIPAzAyXkaE8wckDqIO4GLHDSx8E8w/ev7Y/LWmVsH8O72s/6cHOod+NVNKpLERTnc3/Iar6i9WMdzqOFztBxa9T4GS4P0piGRAfHT0eX239N4Kb7LnNm+sfaVV6ovKYbPniU9AR2tzHNJayViRj+3b1n/zeOdgqqNh8zmLiPy/ac0bzvp8FXFXCNEgakW4xHWpBYDxRUQgZJBrBmEV4WiHMEaOweCje3f0/ftka+N0lcd/dCJxUUXyo1R4i+/jAq1BpfFTP4O3NzdkDhUkvQlAdu9P/NiJ8RWJBDE8LO9fd2Xmn269Fc473wlTKuwzFeURhSzu3u0uq6h22isqePHggET5Dx3+jo3FoEAMWYubmi7PfG88GuiUWQMs6jod4dR5b7ItmeDHRkfFFNTQWCuwlSk6vpHhdBpv3bQm8/2zEbyhdwcSsueexJdTKfXebCh4CejIihSBqaqmTo/YrzZdmX0vAYmS7BEEORoRTDma0669qVfEEmYbyHPy+THlakHYqko6+ZwcH8naP7p6TW7XdNYSfebuffH1lRXq267LhcNB7ksBUNZCYjGACsOZnH3dptW5PQXIqkjhIxREYxDfRYvAaC57Dib+OVWp/mJ4WHyGkPRQAKuaWnJk2P4gN5D9402bMFquEmlpgS6Ed46MgL298C5uQWzBUP0RpfhCa8SiOHrQOC6170tnz/a+dZMIFK66YUGlm8V5IF5tgdcBcoN2qH1PIiVS8GgYx6EjVoY9Hzce2Nm3o5gQLjX/lRur62PK+RmARaHXwyKGqu86dDxP2nt29L1xEqHIyzfXVyWNPN9qXgHgRgKblSJCS1oXPNgKYV2HjrFy1BNef3DbyfvPVomMKY+Ntdcprb6pFGt8PxD2IQjHKg0F4KQYuWHfjv4D0eeammBDz2EMtIMQ4nvsGBgm4Ll2U92/alf9r1CJFJ4x7cYILy/fSbHvbdu2IRd5sdM5X8uvW1pR4eWOKMXnWysSPqvE+bI7erb3b5rKu9qwYUlqVPnna8iVJP6Q5CYAMOa0vRIBTKRIfM/+e/pE/7t6e+GVOgucTr5jVy+qXJO8o7qGDcPDQawdgKmuoR4ckMdq45lLli9HJrKg77oL8Xht8heOg+drB8il7aZ1DbkdYx5DOzRagC2EbW0Fm5qgpoJuGvNk9iavqKjAnVpjwWgavuKpOhcRiOsCihgcTWPT5sbMfZ2dcMqBsUaQ1+Zm+Lv3J/6lslq9a3jo9EsiAuM40K4LjI7KGzeuybZPJwRUWJuy8HmJ79TUqhv7+8WHhaY6tV8iMNXV1MND8n/Xrc68QwSqowOc7PtEwI7DcLdcgvzdPYkrK5Ps9vLQhbksK/DjMThU8LIjfN2GxvSdU1lLpMy370teX5HCbWLg5vPweWo/RClYxwEyabtp49rc7vZ2xLa0wEMZe16IuNp9IPmNyir+ceF+iEAA+LW1dEdGpEfSmaubmjAaKeWpCqrly+H29sJr2Fj3ETemPl0oTMZfcNel9jx8v2fHyddPVUCu3bzwMoH5rOOo9V7+DCUCERilqQHJQrh277aT95ejGKP5r9lU9wXHVe8vOX/Ad106vif/sm9733siAV22JX113WoF3Ky1Wll0/oCvNR0R6bN5dWXP7hO/mK53GM1t1ca6N7pafVtEaC1OE4YALBV8MXLVvh39B5a/E27vrUG4rRxDIkJcrdlcd5uj1eu90xW7APDdGF3PsztVpvqG7u5f56PIxPTOV/3H3BjbJtyfQMF39Ozo23I2CrhxU/16S/my1urlpQyWWIyOn7c78oOp195zz5PZYnUkxbQcIwu4aN6MsMgm/7W6hg19JyXteWMHTA8OiHFjuHAgX/EyErJsa/Cc2looQFSUINQOM4UP3bIFJswbSFsbbHMz/KnkPLZsgdm1N3ZxIom7QSxIjwZatPDXlILVGpJO2zdubszcd+gQ3OZm+OVAg7dsgenqgm1vh04y+4GRYXk8Fj/d2iChfR/W82CTFfzmnoPJK7ZsQRReKTvn0dUFTcIuPD/5jZpadWN/n3gEnELlAcAkk9Ajw/KTRx7KvLu9HXrr1vIgrCRkyyXIHzoE9+qG7MFsRm6trKISnPqsIpx8Hsb4cOIp6di5v+KyctfS3h4oj509iStTSXQYD06AnDpNmdtUJXUmK60b1+Z2HzoEd8sW5FHmnm/ZAnP4MEQEKonMO0dH5ZfxROhBBWskCbe/X7zKSjZIPHkbEKDYJjjbJcdFFwWetCL2WgNwUgYHccowzgKF3QrV0gLd0gK9d9uJH+3b1r/BePiK61KLnL6fJLQ1YkgmROQ7q25YUFWOIVhZGSIdrXSGcXDOQIExAbC1FaqxEU5LC3TP3f37R4/1r/V9+a+i8wccY8RXivXQ5tvL3wl3OoZsS0sA0W3YvGCdq/ktERFrYccZdNZxqY3FRwqUh1eucC8QzCoH3uQb+Y3WLLzzBOB6OfFcV22wiaFvA7CNjYH3M53zBWW7bZBxUDNwvs7cr4K96t7et2soY1dZX3Y7Z+4VCTheTjwnpja6NenbWluDOqXx36sKL35ra4CCIiGhlcdxgsHu6kmsSVWype+keKkUKuJxOFbgi8DTDhgoFDkaRoEEAK68EjkI00E8FPANF4QHYSYQYNh5qK5Gx/UPXAd1uSwM1RmWm62sos5k8NlNjbkdhw7BXbFi8jho4Whrg120CFy1ChkKPpdIkDLOXSWhfB+iCFeAb25/EKnCeZajDJub4e/oSf5DTR3f1N8nHjl2yU77KhGIMfLnf/ZnwTqmasUtXw4jAiImX0iPSk6FcffxClFrJLWSbx86hIrJ1tLaCnX4MGT7/tRi18V/CxD3fViqU+dMBDaRgBoekiOul/1Mu0AvXz71UF9bG2xXF9SqVchYj3+l9ZkwSKXgDgyIV1PHjTt7EjeHRsqUWQ06OqLqdz5hrM2GIUSZpOp3MkEV/E4bbEcHTEcHTEtLcAf3bj/5Xt+TjlJKxPjiuzFepHP2I21tY0Kr5IhCgnD4uDWC8Z7BJBXmE86/rQ22uxt+NP/eXvj7tvW92fh2j1NCifie+LG4elXy8fp3lTP/8dva0QHbuLn+fAX5jgA6RDCp06MB1L5ne/dv7/tyYyOc0POY8hlrbIS6b1vfkBh8SKkwX3D6glwvL54bU69t2Fj38e5u+KGgLf98XRyeBU+eMEb8KId0lufrzM8U7FVjI5wfdw8ODFj3NdbIjx2HOjLATltbTjw3xqv3HKj7Uvg5fYYCiaz4tjbYQ7+qq+npQVVozcr4GDrAm5QSicfhptP4Zj4n9y9aRKeqim51NRXFfmL9qsxvIzTU2L+B32kdoH0IXAYUp6uY4sUOEFfZ7C2VlXzxaBp+kcthYzGo4SH5TV0i8/H29ukJrPAiGgB0jO4YHpIhreGMP1AkdDoDv6aGL3JGEx8gYaPq93Is986D8aZUiv97YFAKQz6Fx8CkKqkyWbl7w5psz3SRUmFehxsuzz3q+ziYTJ4JrySh02n41TV86UA28eHJ1rJsWRCyVDD/UpFS52ZzRfdDXJeEyD82N8Nf1DV9hoHmZvjt7dDr16TvHh2RnlQqABWMW4M7MCB+VZV6/6598Q1kGDKdDg1E3IwQHMUsjY4OmLbwXopr/sw3clSpM+PqJLTviQB8z7p1VQuieP0EghAA4FGGxMILf1NmY/6R8PS0vN0YOxLOf/wdUcYXAfChlS3nJ8MCNpbpfRCAGIt/0w4XWgu/aNKZgIhsBSCLF0+flqS7G35rK1TPzr7/9jz7QChox983x/PE11r9/ZqNdasiZVq+pgrn5pphiKT5DFTndXfDb2yE85OdR0eNyJutSJbFzgXh5vPiOzH13rWbam8IFeTY2lTkWWzvjm/c15vcOXIi83MbT/xy9/7EP7e3IxaFtJqbI3SVrABIz5Mnr7oy8yd+RbZ5eEjeb618brAP161bndsaJr9tqCQidPuPXJeSywlE5PrwZ/Zs4aF77qm4tqqafzQ4KL5i0bihTSRJK/j8ihVIL1o0fYEV1qhw7dqR4xDcm0wUL1hThBoZERHiL7/fWVMbvbuJPKmWFkjnY0hYUV8TKxBzprsYrofWAK6SL4Wfm/YI94ZQsstxCCmeJNOjI2Kp8L6d91YtKLWWdgn2Y9e+5PVVVer1Q0NF98PG49DDw/J4bjD7vfBcnRUSJzRsSOKfqFi0hkEslDEiVOornZ1IhOGvKV/TTE5byCzTvoRWb8+dg/0i+LJ2zvR0AdBaWMdlXd5xr4+KCCd7dJLKB8SfTfkUWbcH7xr4tbX493D+4/dYGQNxXD4/NjzaDEDKsdqjmH/Dhro/dGPcVDRXILDaofbz9uGlNQN3h/nEszpj4T0Rkv/M4rOk2LAYmrylsRHOxRdPQ8Zo7ZP08QyNSIns395/2Pr4iuOeHsoueKfKWhEL9ZVVNyyoCj1yAgg8j937E2+prtXbteZ6gEuM4ZJFS9RfLDwv+W4S0tsbbNL+/QsqBVgYcwFj2EkAG1+J9JoVmS9deWnmr69anb5zPHLqeMBVBE21w1gwl4efTKnLduyNr2trgxWZFiMwDx+GPPQQYtaXm31fpFjcUATiaDjDQ3YQjvMtAAy9iLMWukLcq3VxoQtA+R5sVZVaWOXmrgs/pyd4piZh5enEe6pr+JJMtoRVFQhglU7Lo5VurqvAk5jWCPdGRFSv5wmKIctJ0PNhq6pVLY1/Y6m1HN4K6eyEI0o+ZXwRFld+NpEgSHz3mmuQC59zVpZwuJ9iUpm7R4bt024MuohXqDJZmOpavsTEkv8rDH8940zUU7jYFgCNtt/yfcmGQnK8ZSgQiAiuBgL+qbky/3Au1Mr+v/As6CIegg0Nss1AcWLD8Z/o6IBtbHxBguQ/WoPid56wSgFU/FaxkMs098MEmQfzQz8v/UqdeW6DkK8Yx+UrbbL+zWH4y8EcH9FZ067+vPHs8PhQ9pjHaGFiLp+nc/K+glwP1M69sZdQ82teXpAeFev58I1FNpdD3gKrTrPAEjaqIocinhIAvb1wOjuDP6E3c9qXt4T4/DjS3elReSLmQokV0S4/FyVlp2oNdnZCt7XBHh1JvLG6li/LZmBLuLEmmSREsGvDFcMn29uDHA9mgpXDysN2ooQkw7i54rURG24p76OpCeaue1Atgg+n0yKqBA78lACWO1asgHe2Avjw1vCzvv9oNnuq/uBM8wq0BkKR10SsuOMhu21tsJJIvqa6Si3LZGCLtQogoLJZgTH4QbHnnIVXqDddilGA25MJAkUKORWhspkgbNL5GBJNTWEOaG4OCwAH7xr4tYj8RGtifHyaAmUtSMorWluhngmakCl4IQEMOzP4U2vlURXcOjvuMFMsKODyAkGGCVBXGoDY5PAbnRhfaEzxegkC2vhihfb2gvzPWd/3lhbonjsH+0HZHRqOxd43rYWIkb9ZvhxupHjm+LAtLVDddx1/WgQ/KOExgoD2g7DjX63cWF0fhU0VtfpQKoVkLocMCa+mmk48joTrIiaUOwFgeDi46P2P9o8Q7A/cOFlAQoaHIc3N8Jub4ReLxZOQzk7oVauQIeSWVIoqk0G+qkpdtudA4vMkTFfXGIy0bKuztRVKfLzfy8uELDIkQJHtkOKU7VO22kOhpxWe9PKCUpW9FCgvLxTBZVF+YwLvQxI2+abqanWOl4ctleglQN8XUNSOiZRSuWNrqEByTB63VgaVLk5jIYDK54UAXnHgAJIhIosFa7AAYAz+0tqS+2HdGFQuiyf8JZkfAcCWlpkJB4W5NAKybQKUkcrlYKuqeIF9KnEDCZnLXkhk4RF8kGrMICk8DBQRAFza1VtZ/0yza5cjcLu74ZP4qVI4w1NnOH8Kzt+8GfGoEHQyS1msvFdsSWPMKkWKlUeWVg0cng64pNQIPSQC2F5qlmFuxzox9bLUoroN0XvA/BikwncmuD+0QR3KAgfOm6Mzqkiudx2Konwdilfkc7KNYO+J4/ZDG1Zlv97aGiCDxpK1lMMiECtcJQIVaniWI/CHJfvVoSH5dSKB2PCQ5Cur1Ps6Dyb+PoLtdnZO7vJFXs7ajYmV8SQvy2ZPFQoWEeI6nRZY6kMgZIaskcBotxw1prT3JAADXi05Z9FFlXWlPK2uLlgR0Iq8w/NKK0MRiFLQ6VGM0kFvoaV6FtY7ACDdMDgEsl+r4nUSZMARJuQS48SXhsonKmZUbW2wXQdjL3ddrE6nizcqE8DGYwSU3HfNS5Brb4fGDDH/hgpMxMp9IyPiFQsxFPA8iQhumkHrdJZFMR+bIHcGEVR6vqoBALTOHY+qICT1WCh6pQiSEELUZJzKqslyHwBsw8aFr1KarzKlkGSEVRoQ4mCUi5mp9URINgsc9D2xJaHchAT5++CMzYcReYwxH/t9X/pK3Z/QaxRAbgLA7m4YBeBcY0EAj6xbmf5xw4rM1Q3L0yvWr85+vlCDR9a7CG7LZYXJJF6++0Dy9SRse3tRqOlpXsiyZeBrGzBMse/QmqSCGh4RvyKlPt51X/LW9k5URgnazk44pQTz2DwU/jAeJwQlq9hFu6DvS3/Cuo/PVDOVRYsC7LvSXBSLlc5BRCyyAqZs1qspFLqFsN22NthdB1OXOA5flclM2CVSYjFAIL9sviL99Ay1+hUIGMBbZaiUBxK55q4Dx8vpOiBAXBWCJKyo16VS1CVc+whWCwD3nY7qO/sRVRT3N+R+LYLH3Vi4siKeVCYjJLl2R0/yXAaFq2pO6w9l+yaiISKhFZx4oD/mpGHbP8kKNWzSKU8ZyRu0Lh5iGaea7pvpVURnrIoLHhHgt0oVJ4UkoI0RCrj+1euqFoShRWJuD2lthdq1q38QkEOqSMh0DEIeEFJe2rihbhkAUSHKCpa4oLUV6qGHAuRV+7jkdnNzELbQ+ewPRkbwC9cFtJZ/umN/4gVbtgSFaRNdxi1bYNoFunlVbtfwsP1gVRUdAhweEq+ign96TmXyvu77km8gg5AYGSwqyq+IBIixsQcaXp3LCVg63COOBkAee+qpwaGxTRRwqn+k4E8mE+RfxNjXTJBEPy3ub10J5r21aEIeCua6VKoEAqLAunJcgoqHJ0vKY0okptF74ZDixJXaJABHnCLWPwS82vOLJ+Kj8JvnCwTyk0JwxUxdgPb2iMRSfua6JRBlBI2BqaxkBZU0h5bl3FYgtiQqR8Z+RWgCANecHP4k90OyWUoZSWwCslls6bxjmBeCEvwUmHFggbS2Qm3b9kiOIj8PEX9SwtgyjsPauI6tCT0oNccVyJgsInA/i3uM0aEzjkNaBuAHB5BjvofzFHh1UxPU8eOwWwG2nRmzl44O6C1bkN19j313Pq92x2I8V/nY2XVf8s0rVmTuH9/1L8oXhG1I0dEBPPQQYpdckv3Crv0Jt6pKfdrzRA8OiJdM4uVa47+770vcC/I/IHJX4+XZJ4rFMHcfTL4+EceLMqWS56ErqTRA4HiUm5kuvnrcx3LbuhOrEgm+dXRULAS62HEWAZSCiMWwMYkTQB5bASm85F1NY8J3vT+B8C1IBANWHp7Jg7OsI7JkZZhKBRNnkUAKAc+H7+ftMSBojRvBtXcdTC2BtZflsmNsyMU+r7MZGPjy6GkJ/BkakUdD8mda4YaS4bGgUBa0XAfgW3M+MK2YmEihi5WsdTGCOatBJD7hsRamE0ZGJ2NJbtxUc4EFloXhq6JN6KigjG9zBB8vKACdaSFrBfw5ifWTnDEh7VUAflAGwmwORUz5Y0R5EBbVIGHokc0AbnYI7hLB25JJXDRqEh/esCb7KRFwWYliq/Z2xNatzO3ZuTf555XV/GpFBV48Oio9XfcnbvGN/Vcyf2QSq8MAwPrV2c/s3BfvTVSof47H8bJcNmD+TFbwCsfhFaOjGNlzT/IQBAeVkgetqF/54qeV6HVa45OedwqLXArdJEHaLbX9QaQGfwHvoosgvb1TfKPLgeUAjlVDOceSC1wXNyjiU9YiYUzAZlni+/1UJd3hQbt386qhvvGJ9Ej4fr+zphaSuzSXZynhi1MNbwBLPIqZbcATzofpkOZZeGYdhV9ZBXd0FPdvXJt7POIvWrYMGoBR1r80UaFS6XRxhS4COA7gedKXVFVPASexdSukbTYEnuWvZOIaXpX3BKSsCPdgTiNlKFJf4pgLSVriRK2pPwH0zdW+5PUlc3qaFCtHwy55Rav7GxuhurthBfpVjsOYdyZvU6GRQpJHU+w7Nqt92gW/muTnIcIMVxTCgOfyaGqC7e4GFNQjxthSShoklLUCirxy1Q0LqhzR5nP5vH6TUnBiCX68855k9pe/zNyyZQtyEymADWszt+zqif8snlBfEuAPKhLqfelR/nnnPcn7KDhgRB6CyJPUetAKPWNEuQ60DZIwDkUcBfP06Kj6aCIuf+O4vNzzgEwaFhDRGpXxBJoch03WBk2EtNWSqiQzGYHxJ/YoSKhsFlCKlznpxC/qz2NuMA+86JKpnSrmgEECsRNQIBYkk6zMZgS+BxnHT4WQHtmKwKZScLMZGclb/dEwnyPjq+gBmJSTf1ksxvqQEZcThcI8T6AET84UBPY0NgCRI0GFOIyEeRgS1gokWQHX8+FZKx8MaW7Uafko8lWuS4Qqu6h1qB3Q93G0YfXJkemSGmLymhZYhSd8M6E3Ry8PAHzh3t6Kc4D0U2dL9z6rFiHkgqIuoUCoABr5+bbtj+Tm2hpOhY94QVGLNqjXoCEeihA9ExE3isjyAFJZEoElJCFij27bjtzZ0KuXAT75zURWeiRkIXzJyo3V9WFrXM7lnupRjoeKTxkjo4pMhSE6FgnRAeRS18NLnfUr80d29iTfX1fPW0aGBa6LLzxxIvnuPQfkl0VK9gsLdjTAwVwWQ9qBHR4SS8JNJLHadbjaCuF7At8PoCJRe1KlQ8FPQisH8ADfZ7ZAGTCqtE2nYcOaYSJgeOXosBgJGlmV5RZaC7guzw0RK8AU+rCMt6KNAUaGJWgqpU5jxmXQJwCMxaDdGHU2I7/MZOSmq9eOHi52uSPhq7Rdlkho5D0xk5DYqVwOopU9XhgWnAHLw4iAe3vVrYMD9l21deqc4SGB0kAsFvShyGXlkZGMfffVa3IHW1tPdXo8tX5eYmViEIXWAITHQ3r2Ge/cGPGuuYKj+VxxotCCPIgkEqjIZuyLADwVAQIwtwq8TKhBLh2L+/PMUJyQnYXhlbniOHV0wCxfDlcEl1hb5NqF7M+02FOOIhJg2YShlQiyTx6N8g4zXRszNheRp60lJpBBDFGTtY6NXQigr7UVLKCPn7MjaY/3j0r9SSqUUiABUaVDZawsc9rboTc0ZP5l176kjSfxaddlbTyBFwN8sUxyHJUKughm0oDW0CJANgPJiohEnS4jhH4kwMe7MgQcB4kiYQcWCgEJMXTRc6fyUvJ5mEQS2nUJY2T6dkCQZI6dgU+1QN4DxOKk5+EnxpPbnhrN/OeWZoxMKiytetlkuRkRiNagNcjkrR4EgK1bZ8yakkDBpZ/acTB2VSbNm0l5tTHIezk86Al/+HQ68+1ia4mq+km5yPildbMAohQhkOMA0IGZF9jR+xBl+o2vPKXgWlvCqyOMG6OTzdgXAtg3k4gwzFx7Vmm4tuYi+vwDY0TGhRSEgPI9MRa8DQC6m2DRPTemHwpvSS1acCkpF1h7Rv8UUQrK8+yIZ9w7JgrzREqA4IVWJqh1YZRaD87YbOQdInoSJewr1bNjnJDV1tgLAfTOMQVfEpSxbRtyazahj+TzgyRnqSAdAMHLnYimm8x87Y7diW3VNXybNbJBRC60wqrJqIUl6EKrpERvZSkKqBwngGXy/HYYm3cTSehsZkoJcVtRAZ3LYX8ua38owsckaOsIpc/OIrAGdEijtElr1znhxPWTqy4Z6ivV3rdYyIVKLrB28sUoBRgracaTo0BmRnMIIaUMyfzPAFz7ox/V1B7joHfVpRgttZYIRtz+EGIyyHN9M3EhW9DvWfqBoFHXLCiQ4H1k3RHG/LRSrLF2YkACqS6Yizd5+R3QvYAHX7/TcRkbz/kkgHFdOl7efv/Ajr6ft7RAd7TNnTj7o48GXSatte9xY4rGiuHpxmDQHMvDN+7dc+zoBH0tCEAaGxdVWvrnBFbpxGdHwL5ZDPMEk3IwbEVyikyUstIjhaYoL8B8GWN95aU/FLAyicq5yIli3e3t0Nety/46xHK03fOL+mo7mqkaHRGNGeB+PttnKAVqZWP5nPpkRYW6MZM5rStgSSsglaLK5eRTzSszfzu7bz83Rmle0BDLTkYjIuC5xk6MwAop9kkwo4f7c7MU15WwhzjIwYHCTo0TraVmMFUL2rqoqLKUYg/idRyc7TuQz49knHgirRRqJudSl3NnM4wznc9c3AK3twP5KzfUXaKI9xYpWhMCNL7kNdTfAuC0iPtmac2n5l+7Vim+JZy/c3q1OJTvy4Ax/Mcw3DVhU1bf9esprClnlQQGZ9tKz1k/7cLJgEiU8YHz5ov+aDkCdgQh6SFOEogJi0DPcwrrNE4Xfn1DAIbm2iK391T8a4WSG8vIWdhEAiqdliPrVmX+VgTs7YWzfPnMupEd4T/CnISQsOUkMyOrf/dB1NtJhC8ECFlAs8ePB97TbFA+t7XBtrWd1lLXlnK7t4aXm55Xw5iuEDv5nJSVkdmW1gsWID+QC3JqYaK+eFgtiMsvnElAwpndqMv73ZYWqKiN6pEO5BuuXvgSJfaHJCusFVtgdY91wctl8Vf7d558uKUFum2GvY+Qo47Tnf+q9QtWOI50AFCnxR8C+kOrNR0vL+88sOvk7ybqqtfaGlj9dKRWgXGRyRWzWIzMtgyqkmQuw3yWgVs92Vg0XxTIWNiPGMEEtSBBTlpAkYVOEQFioxDF+MrpZ3Ncfz30/7ccRh20i0AFgQgnvsI2HqfKZOTuqNNfc/PUmkjNmhkThn86OpCoP08qw4TchGZPGBIs5BuT2SPFmfzZW0NXNeY6ldCijZkYVh2OzGzb+yuWw991EHmGebdi75UAbQDbqZlJQAIjhArwB2HjI7N8OdywIyDGJ2RDwRn9G5s3I55h3Z+I2E9RcYHxTxEGhn246cbo5nP2U/t39n/1bHuKF6ftjsDrAfXPyEj5829sXFQpCf+doLQRrCzM3YgEjd5ch04+bz+0f2d/x2TzP3IkEmisCmRWSZRfQd2MZGb7/v629qi3YLDeC7A9UvzcSyh+wzM2l9iSyzgHmXJARSCqnUmEiMwhnLJqI+yee1RKqfL9TSo8OVfhc+6imjiQS4YAA05GCgmIj7nDnxP0T6etcDXhTwKrFgAWzM92eAGE8KDkOYk7FCCbpGJGlTGhjBHruLxgzaa6m/dt7/9Ab+/ERkvD5spFgHMxqTeMir3RUeqlxggi5REhIR2X2hox+bz9YM+O/i/MuPIoJAN0eNnaTfV/29bW98nJEr+N1yw6B8ZcIgqbrJgbHUddYHxBqDwQzp+OS22tpL28/MX+Hf3/0dgIp6OjvMZuyrCCTmmDoHBYmdUzBgBYBpinEe7rBGZT2CshBZxKwGNesCoiX+aNq3Awz4b4k1S2FmN7mqOjtso4Nk9HBPN2WCUxpTjJVYra7M26B8gQJmwm8wDDycZm4fIp44vVWr1/zeb6lRDcLRYjUOISjEFQJUFx3VIS50PwfKVZpxRgjYLvSdQxUEWKAwDEyF4DfGT/9v57ZkN5nDZ/I6I1P7FmU/16AXaByEDEJRgXoJqQeoBLATzP+v7zlaOqtQKsEXh5MWRYEEvQDTr4QYzc7Rn564M7+x8K5++Xz21v4yp8DThL6pSZIh9cs1H8cuQQyVhhncX8ELLiTbK26MK7806BWIg7JRQv5y6NgE6DRk9hfnNwLdbMPZ6fsmpMAmtWz0ZRIwDl+2K15pXUuLJoTl0AKwKxgDHi2yAE6CpNV4UZCN+XrBjptIpf27et74eFXflm+xX6vljtsJlE82mHL/xHBMsXCxhfrCEsg/osHdKKUASjvsF2QL62b1vfjunOn9S6XB+UinMHKhugUOc8D9Y0w/AAoOadAqGilSmYowpjYYp5OwIKLADCREEP9Dld2To/Qr3P3vsjAc0A3CqAY61ArIyIld/4wh8T0uXA7O7cNhTRZjAsRjPP1JkrWkzri4QweI1TtV4q8phEYByH2hjpjsf5R7tuP/m7sUe2gtOBG/O5cz5XBZPMPwVikZuakGD93I01aj/MHkxqWFkLkFK5aBGSAEbKiQc/E8Mh/XLnwtn3oMJK4TKYigOp5BeCGmbSMXMcKt/IARjZHRDiFKBaBFQQ35BZCoZE2RMO9VMC9du92088fZph0ArVciSo7H4GwyCiHSpj7G4A+0WYD5SEXAjgDdpR1caXokWaIY2HAPLCrDGZxkY4IyNgby88THf+ynplGfIB08kz1cCJZf6GP9arZb6EsdTkawvzW/78y4FoGZ4Ef1WQUANEsHSurqW/fzCXWpjIKjUx5DQMFUGEtUCyFsiMhAg5mQNaMGvt5CCAsPuV+wzNSk+GMgtolZgFxvq0yAy59tZxqYyRL/Rs7/sgplfJrY8dA7ubYNEG2/HMhiZCmgp8dN/2/k+P//na9VWfErq3a82XlmgrS2thYnF1fi6Lz3d34+0tLdBTJjEtHEZlheUJbWtnvwNgYyO0BZ2pIJqiGot5QsnrloNPIpibNwpkrHIbqs+ayanPCTCkfn4+cIp2Y47E6AUArr8emd0HOaQUzp3Iio/4m9wYEnlgKYAnn23+pgj66ll/FL4zqXcREB9J7BlIoHP3QbpWJjggIZkaxI4Ap5pjzYD/Y7Wm8n15rGd734cBcPlyOMVgsCjCsRR2hhuj73imqUki5eH79oGeHf2fbmmBfvRRqGj+xxdD7e0Y/mXDxoV/rLS9rwCpyfGNh7y8GO3wrQ0bF361o+NE71nlbhRGQloNlpEmjM/2e/ptEnqpDYsjWTq8E6SLZASYb6HdMoBKQTutkfnjgXREkD45ls9jUupzAPQ9ACIXth9AkkRmFkIV0x6trQE1yO79OK41XjbpvAiTiNPJ5+xLANz/bPM3RdxTyuohAXLUiFszMaOwAMlZDV4R6O2FA0F8QnglAybbiPZipt5lwPkFGIOfArCh0PQwf2LalgqKZC8AHjsWhp4KxvLlcHt2nOht2Fj/726M7whRV7pYvkQrKmvsFwGsndaVD6GvlhykHasBmRjtR5uc7dd0oVniZJiPyWShrMDL7QNmh5tr9loIMDk5sxRpIX3zBiFw+HBwmIzCU56HjNYB4+VEdovnAVRcupixC86CXgKzVdcSCp3fqDI6G55qCcvL5sL8t4ZULJ5bMQDKkC4nRE2mZrcIBDjpIAZIIgxfcsLmXJCjc4zKZC4R6xU9j729MACUdvT/9j0ZCFu7Fuv+qH1PjOtyTcOGuj/s6IAJe5uXP8KcgfH1AERGysqzYfbOWDSGmYkTjJdjiorI0/Nl08eKHYnKMebjEmCKEKb91LxRIFECUecyR0H8znEmh1+KwKQqqYxVK4BTbRvnGJDhYVXWxQhawpJBk5qoleyzHYa7+oq+YRGeCIGWMmEhoZWa2Z5XrL8ySTAptiyF9sSsFzb+/g3b0gJ233X8aYF8XDtUxfpnn6rMF6HiZzZsWJIKi+mmrFjzfUf7hTzJMgj+BKiZbaMgrpwKoZTr6TwxXza241SxY7VMik0CCPx6PmGUpb0durkZPiAPu27JnsRF4pC8KrT651JlvUQtJMtpZysClcsCIC7ddTC1JOLSepax4IpB1/jfOM7EcMugUy7rAKBrdjyi8F14lSKomIiJlwB9I7A26O44l87FvBA0HbCtrVBLq5d+xffswyWVCKGMhXFdPj+r8n/d1gY7xf7gAkD19sKj4EkGHZdlkitfh9kLO4fFzKjiZNxcAhV0ROVj84bKJOLwE9SVxTsGPDyvilzGOuAJ7tV6ArKvgi5+2ZxABOs6O5EI25dyLoWAXE8eTKeRowoKsCaCwBoDU1nJSjGmqbD3/LM1Io+OwMNaE1JiP0JLFCQWAMDWppn3nsb6o7i61nHhht0hS+21zqQhStQjv+fewqzZDkeOgB0dR/IAPhS+51J7rz1PLMkPrdlQc2FHByxay1cijY1RqFd+wYkI/kLuKZGAIHM2BHbEzSVK6lSQgZXSrcWhjBEPvnl0nHWPOVxuhsZGJISoQ+leIAFU2whAHp5XCiRiTXU1unI5AWXSg6jyOdiKCjzPj8cbAgLJuRHGijyIxsbskyLyUDweIV0n96hItJCQWWCRnSbqTx6cqLpTBLQGgMjisivFp8vNBbM4Fiv9LkUgjgtYK0/XJEcfe06BTPt9m5YW6H3b++80vmxzXeoSFDIUgWiHFZbqswCk5cjUjTiCD5ZTHU1iSSGibTaGFS4JvSFbCsYUNFDDk5mBwScK8zlzfXjugnqKLJjAAxEStIIBrdT8UiAtLcGGxWz2UCYjv3VjZXT5Iqx2CIp6W8iAO2dG6EEIwB0xt4xEukCn0wKluHlHT/LcLVuCUMKzGIYL3r3nPJAeFWHp+gv6QTnV4s5OVEZKZTa8U1Cf7zil3yUJG4sBBB9asQLpsTDccwPT7NBHIT5orHilPJEI1us46sbVmxY0TSWhHnkSSuGQNYFHU8pDD3pUcMnFLYiVw82GadKdU+F5E3lDEvR7ByE/7u2FF651Tp+x1taxd3UuNSsmamerFEHIw913HX96XikQEtLZCWfVKmS0wp2JJCGTKRCBTo+KaI3X7jqQPK+l5dkVusU8KmV5WzotApm0AI7Gwq+qYkopeVtIua2e7UT6OfWjDxsfv47FQnR4kapVYwAhF1g3vuT0nMWMc6W9cBJWYHE0ASV75yqwAvMH2GJbWqB6tvUdsUZucdzSCfWxWiCRLxQoD5aTbwGAmHF/aox9mqpkuIwiAlpZUn2yflZ7cFDkheVVJbF7vkB4o3ugtH2xViztXRGiFETIfcA8JPqKhK4I/rOcMFYodE1lJVMi+Evy2RW6hSNq4tXckH7A86Q3WXGqVfxEeZ1MRkQR7+nsRGVX17OaTJfOTjiXXII8FbricUoJhU5rYZNJOCK4CJjB4r1x54KQl02UQIdAZ7ICgjtnqZnU/7iEOgDlw/yD8eVYCOu1RWG9vhg3xst+N1D3jo4OmMbGsrwQaWmB3rnz6CiJHq0oghKhMgtRWiVdJ2gjO8WEfdket4AvnQjmSkAbXyyt7D7NU8e8qEK/DBPnmpS1IA23zUsFEgndq1ZlD2Yzcm8yBU4mdCHQIyMijoN37zqQPK+pCaZ1juRCmpqCEIoQX3Edsgxqd5XPw1ZVqfN8J/HetjbYZzuZHt6a71sLlkSTETbmEkL+wUwW7xWeCxEogi/3PAGK7a/AxhNgLotHqt3MAxBwy5Z5dLnnqMhpaQHv2THUJ0Y+FiKypKQx54tVmv+wcmN1fXc3bDkyaCx0JPj+qW7jRUNHRmmAwCWzYPmzrQ02DI+9NOCmKxHi0aRYPLR3V//h6HNzfRPDvQCIK6S0crRaQ/m+/a1Xmzw4LxVIFP4gIQr8pFKTC90QwWRTFayyBp8hIU1zJHTR3AQjAjq57HeHhuTReAIThgEiJTI6KjYW40eebYUYUcT4yczukRH7lOtCl8pLWQGU4uUzbflHIck9BxLPo8JF+TyKwqKFsIk4oTTaV6yA19k192PT8wnWe05t/7/5njzoOCUT6spaiONwsYZujWpKyhBuBgCYtHf5vvSpSRCLlrh8xhcZ5ggWDS64iMTzbIAaUcUMpZCO/zsAbJle1pwg/L5yw5LFgLzKBhRQqkj41ypNkGi/p+PJTGMjnHmpQMjA2lzXkLl9eFj2pSpLHtjTXOjhYTGVlXzzjp6Ka5qb4Xd2wpkLlYQAVHMzsoT8fTxGYhKUEgn6PiSRZA1Ebnk2FWKUl9p0KUYJfiNZUTwvRUDlA0j1FQ89hFgBJf1MVfVTab66IsW4WJgivVOEgB4ZEU+J/Y95F1qYF7BeGAo/MFnDKt8TqzXf3bypbllHR0D5MtnzGxvhdP9wcADAd3QAkjAlW/IKVrW0QEeKZyZGY3C/aCkrHZdaijeuEgLa92xGEd84zbKfwyNUcnSZX+86qtLaondTGPS58ZWoW6P7o+ax1cMg6cP3enkxWpfVfZCeLxKP2f/beW/FOc3N8OcCrJeEaW+HXrc6++2hQdldVUmnLIU4In51tbphR3fyL5qb4R869Iyx3WJcAs6GBOm3jIxIRiuoInuhcjlILIYLnh5KXgqA7e0z8+7DQkAxFlcromg9igCmqor0fXy/eVXukfZ26NmAE/9Ph/Xu3XGy0zf2Njc2MaxXKbqe8PPleoCRsjfgl40vHk/xYo2vTxCl+NLfDdW9DIDMFGAmRIOJCK6eAKBhHJcUwX91b+t7MlSMdp5QmIgAN8nEa1Ni8b3uHScfbmmBbmubxwpky5ZQ6K5M/zibkdbq6pJWwen8WHnYWFydA5H/DgWuzAUl0tISMMm6jv3TbE6GXBecNJQl0KOjYioq8cXt3fGrVqyA92wokbY22HaBWrc6+2vfk1srq6hsMQuRMMkkAeB1AGQm8iAhQabZvh0piFydzQp4ZmhBtAKzWfHjjmkTASM24ecGZhzWC8f+tfElMxGs1/fEOC43rd1Qe305sN4Q8aUPbD/5c2vl645LVcwLEcBoh0oLXzuDKDt2dMA0XFtTR2K9CZgjdBELnb4vWbj2kwA4D4oHxzpErlq/YAU1rzK+2CLkmEKAxhdPg60AGPV4n9cQxi1bYDs74Wxcm/3EwIC9o6aWrkzSd5uEHh0RP5Xi6mE/8d0wn2Lb22cvVhkWMHKyNqwdHVCNK3OP5bK4KR6nUjroejpJbofGQFek1Pe2dScvfyaUSLG1tCCER7vux4eH7bF4/MxcDgGVyQog+KPOTiSawvzPDNTSQKUS11VVqaX5fED2h9NzL6aqmjqfl39euzJ/pKMjYEJ+TuTPEqz3zsFHxcoXJ4H1UizEKn5+8+YXxcvhyeroCPtQMCRy5Jl1YAzDWAL5k8ZGOGEIiTMQ4gHz+vWOy/piIR4RGDdGLVY+13Pn4KMtLVCY+8lzRkADpe1nlSoOgChcW+h9qAgYMN8x8NLUFKCyhm32j0ZGbG9VdVlKxBkaEj9VqV531TWJ799+Oyq2bIGZ6ZyICNjZCSdsYCTleFWdnXA2rsl8b3jY/nVVFR0qmEmUiPI8iAhqKiqwfVdPvHnFCngi0DNd79LeDl1AiT++B4QsWwZuuGL4pPH5nnicKqSOGc8MYKqr+Xwbi7+JhJwtgmwsGU98IOz/csbhr0jCGRqUX5hU9n+3t0NHBanPjdlLqJuE+rTv2Se1Ll7sG1J92JirXjwiJ/+qTJ4s29ICtW/7iaes4K+0Q3UGApNQxhfjuOolJlb/uhlIZHPx4gBKLArvs/bM+pWwja/j5eQnlWrBJ0Krfs4rj4tb4HZ3w1+9se6DrqOafe9Man4RGMelk8/JA+fULG0bv7Z5X0QVCebXNmA4c9K5OpOxD1TXlKlEBsVPVqgbas5J7N21N3ZxQNQYtEQ9G8tYBCpSHM3N8DsfQuX27UiVUzwVJfc3NGQ/NzBgP1ZVRUcpyIQFWgygvSKojSXU9s57k+8mYdraAg/tbBRJ6D1pCSCvhoTs359aXCw0ESnADQ2Z2wYH7Jdr687cBxLM5kSo1ccOHULF8eNB6G46c+vshLNlC8yOvYk3VVWpyzNpGBSEFoIGSaC1yNo837TpUoy2tJSnzJ8bZ5dQP3D7yWGx6qNKkxPAepXviyXwd6vWLzg3qimZLNfS2Ahn/46+r3t5+3/dGF2ceddpBULKxy9uQSyM8U/rjC1fDqejA+apwbq3uy4vMb6YQoRSUJkNZa0doYM/3LbtkVzoTcmcRFu1QjU2wgEgRzqQb9i04C2OVjf749YVKQ+tqa2VPg3/jR0dR/Lj1+bg98R1DigpRo5/v7NmHZD/Tm0dNw0OiA35cdQEnoipqOByUN/TfV/yYw//KPNVMjiQnZ1wjh+HHD4Madsa0bWVDOmwqwuqqws2DI/YzkOVC5X138YM/1xXwWw74F6+edVQ/2SNrSIl0rw6+/Fd+5N98Tj+GQCzOfiKxfcsVCKiNdxUird0359YL779m6Yr87+MlFpXF1SYjCwtRAVs3Qou2wq2hAn+yMrrPlSxyfr2L91KadzZk/izDQ3Zb4lAF3oaTU0w7QK9Adn3dR1MnF9Xp17f3y8eORZWC7yQGl4wMJi4ecuW7HsOHYIrAn8qgj38Xv+Ozopz4gn7xXxObCHySiysdkDXBUeH8OaNTekHxs91qsP4Qqj52+bDmGem4DTKaXR0nPxWw8b69zguryxm3UYFpm5MVYvYTwJ4W0sL1GR0Q93dwfOPHet/l6fqz3Pj3OzlxEN4xhh6IW5MvbR+oP4THTv7PnxxC2JHguZeMoXQldPdDe+KTTUXKPIzYX6gUHkYpaBBGGvQ0rOt72dhcnlaZ8z3hC7LQ262tEAPD8NpbJx8Txcvhlx8MaStDRZtkG7ALr9uaUWFn/07pfC31ow162JBLsnXmo5ARqwvN/TsHHqk2Np+LxRIlEMIlMjgQGsrrrnq2uQn4wl8hAAyGfjhxqtiOZH0KKx2UJVK8Ysve1XyrV33yBelMvu95kswUkB1DBGwo+PUMyJrtqC1pwWA/felLjG0f2KN/0cVKXVePAEcOyqPp6ooUubxPaVEMl/dsz/+sBNT/1ZbwwsGB0WCJm1nuuVKgdZChofFVlap1+eEG7vvS97qw9xK5n8+PpQgAhWh2cKkspCQNkDQFvzOvp/U1Nl89jVi1P9SlIa6hQrDw+I5VINhcvEMj1AEdutWsKkp+8bB4cS36+rVjQP9YkLFqUjo4SExlZXq3bsOJI+sWJH5Sns7dHt74MVM5hH19sIh4X19O1KppHwvFlNLRkbEKhXsjRX4iQQcEn46LX+8sSn7vdAj9M/mjFV61TkbH8qDnG/VIwIAeePmHeb9Z5TxX+EDYuXABMyu2vfEaM0/adhQ/y8dHX33ltH+VqIwysqVFa9nbbrDjatr8zlrghxJcMb8vBjH5YdWb6z/2f6Ovn+PEvVltNbl8uWB8mhsrKm10N9TinV+oEA4JmAdOiKS9T37xgO7BrY1NsLp6Jj+GYvn4nmbMH4Zu+mGazBTTZgfG1zwYtH2Wvi5d2pHvcT3JPLOWMBJaVyHjrHytBh5Q8/O/gOl1kb8no0oHEJCOg+k1mvX3pxM8pWZjCBMsLJokUzgZttEEtpxiGxGfg3IHSB3aCUPJpF9asWK4mGxnp+hKttf8WLHkTVicT2AhqpqxklgZFiGAfyr67ufWLVqqG+qbXU7O+E0N8O/vbNyYU2l+aQi/tRxidERiRSWKlERa7SGTlUSoyOSU8RuC9zhCA+wJv1ow8sxXOz7vnYI7ku8+HlKq+UiuNpCNlUk1fmJBDA8JBCR20azpvXqNd7hidZy2j7cm/xMPM6/NkaQzcKPECxaw8bj1Pm8/fumK7KfKFxzBM/tALCoK3jW8eOQSMFs745fmEiqb8XjvHJkJLBuQ9goq2uosjn5TS5t37phTa4reoc4y2LFtjbYhk11ux1HNfmeSLF4setSe57c3rOj7zVn1Qd8dorFuGZj/Y+Uw0uMX2T+gO+6dHxPbt23ve/PQgvcP1uEz+qNdV+PxdRbJmh/axyX2vfkYM+OvtWhF2LKXJMAUGs21X1JO+q9YgFjxS9ASVmlqMXYD+3d0f/5Qu+ikKwxSiYvXgyJvnvVpgUvdZT8l1J8VeRBicCQoOtS+UZ+5eflLQd29x8823cVna81G+t7tMMr/SL7EzHhisiogHcAki14ByUp2imMgbIAwAsgfKETo7YGMOa0/bACWEU4jkP4RrrEN2/ft3PwsYnOsfP7pkAigRaEK0Z3/dNduOKVC5PvIvC+6mpe4PmCTBoA4TPApCsSDIWwzmZgAZFYDC9IJNWfG1/+PJ1mNo/k73bvx1EhhgDxKNBCxhWkJj+AcxRlaTJJ5TiANcDIiPQR/K4P80/rLs//HMgA0+jJ3twMv70d+obmkRMA3tl5MPF1K/i7eBybY3HqdFpg/LBSN1iDiiw7YyBDQ2IUEY8leY1WuGZ0VGD7E0/vPoCnxLIfSjIQEKQDoJJ5LLLAuTEXqUQieDFDg2LyOblLjHypcWVuT2FP94n2QQRsbYVqviLzkZ37K/Yl4vhcbS1flkkHytxYSCYjprJK/WPXvcn1QvuJplfn9kzkKWzfn1ocj5u3UPhR18WCkWHxQCgRSKqS2hpBZlS+OTCsPvSa9ZmjM6E8gFO9IED+H6VwFYn8eLcfc7xYrLsbPshbtcZXjI88MLtV0iGMlXGXH/V8+zqSycjoKdr+NsYrGzbXvrmjY+CbZSrfyHqWfdv7/3LNxvpuanzGdflCYwTWwIAQa8U4MXXz2qvrN1ixn+rZNrB3ImG/ZtPCpQr2bUL5iCJrjCdeFB51XWprBb4v/5bxvL+5f/fwyXCu/gyQGVpR9v8orVfDL3q+GITkmXI03whyCoY1IRawVuB54odUJRTAh0BpTaU0lDFyzPjy6b3b+r4U8ZBNtA+/dx4IxqGGIov1rrtQXbWk4g+tsTcBXFmRInxPkMsBvg8pEIYR5FZAWAKkgnYdQGmc2jOJwkYc+/vRUQEhDwJoVwrfWrMi+5tImYVhJzkbz6qjAypaT9c9iTXU/FOxuL4ixVoRIJ8T5PNBYi8S4KHHJSJBDoeA4ziAdsK+4AX2CwloHawnfNYTSsntVvifTZdn7o/CXlsBtE0BBtsu0FvCWo1EXeI9JN8TT/ACAMhmBHkPfjIBx1rA+PJjAfZZ4WEInqYwL7TVSuEFUFhBwdpkUi1OpwXGQJIVYDxOZNICANvF2M9GSq5w/zFDlCltbbCrN9b/VyKh3pTPWYwrljOOQ+37ckfPjr7XzjkPpBVs7IIy8bo74wm9MZ+z48EZvuPSsUb+be+2vnedrVVd6IWs2VD34ViF/mw+a4tC00lYKlAsfpuw7rKdO4+mp9CrhZHXsnx9XU3K4V8I5V2OVudDAGMEVuA7mk5IQfKAQHrE4jCgjilr81ajhuAFgLwa4FrtcIHxBQh6mVApwPcFAO6E2M/s3T6wr3B9M3i+pGFTXUc8rt9Q5HydYq+QqX0nAYJjBrMmA9kV9jWBNfIogK8zo7/W3X386YKwlp20C9Xv+Yhe2tgL7z5U8SoYXCuQddbiFY6DOtcNkxgmoB63NnixhTkLpYI/OlQYvg8YK/2KPKyITityd+dd2XsjjHS7QB/eGiavZrCN7NatAXAAADrvrThH024Q8GorWCkWL0gkoMhgDdFaIoZaKVAW0VqUCn7u+cgq4FfUsh/gXXkmujas6B8EgFaBWtYRILHOVpl3dqJSpxLXgbjRGqxWmueEPdXhxgitw7n7YZWnJpzw53lPYHyACsjl4CvgYaWxTVl8t+GKzKHoHU0IFDjLMFBjI5RN1n+GxLuUYkVhQyPXJXJZu23f9r6r55gCGbvvy69bmkz5uX8C8Val6J42/xiRy5j/2Le9/+0zoUAKhKxds7H+Zmr8pVIsGvkQC8TiRDZtv7BvR98Hp/r9he/78s311UnwBoHcCOBKkosj448qsKogAltwH6KfR3efAIwRj8QRCO6m1t/tvuv4g4VrmmG0FcP8i65YWPd5Kv6pUkzMdDbMWoEIBkk8AuEBKHt3vj/Vdc89T2amqhT/JyiQMQu+qwu6uSlwa6O/P/Cj5Hl5n6+EtZcBXGaMXARwCSC1AJMQOAJYEDlFGQRxlMBjIA8rhQccJQ+uXp799fi8RVcX7GyycLa3Q6MF2FKgGB98EKlBL7kMwGXWyitE+BIRnE9IvQgrBYiFxVYelYwIeJLEE4A87Cj1I1o8kHTSRwpzPZ2dcJqaxpBlM7MHBSGlvQ9ULrK+XQGLy0H7B9biQhEuEkgVwAQC5e8BkibZT+IpAr8U4gGlea8dTv8kel5rK9SyZdNXclO45AIAjRvqLhGtrgXkQmsDahTtUBkfd+zbfvKHkccyB4nzgvlfvWAFrGy2wPNCI8tqB8rk+e19O0/umeH5E4Cs3bzg1QKsg0htwJ4sDgAlhAYUXEdc4+G+vTv6/n2a38+xcF04rrp+8RIv760gcYWIugSQCwRYCKAKkASEChSP4Cgo/QCfguAXpPRqLfeuXTHw02gera1QEe/XbO/P6o21r3S0ukYEL7B2+uFGEgKRjIAnqfBbKj4qvn1k347+J4qgzsxUlOL/DzoC4GXLO/fUAAAAAElFTkSuQmCC" alt="Ecoprod"></a>
+    <div class="menu"><div class="dd"><a href="#" aria-haspopup="true">Par où commencer ?<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2.5 4.5l3.5 3.5 3.5-3.5"/></svg></a><ul class="sub"><li><a href="#">Animation éco-produite</a></li><li><a href="#">Documentaire éco-produit</a></li><li><a href="#">Fiction éco-produite</a></li><li><a href="#">Flux éco-produit</a></li><li><a href="#">Prestataires éco-responsables</a></li><li><a href="#">Publicité éco-produite</a></li><li><a href="#">Radio et production sonore éco-produite</a></li></ul></div><div class="dd"><a href="#" aria-haspopup="true">Outils<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2.5 4.5l3.5 3.5 3.5-3.5"/></svg></a><ul class="sub"><li class="gh">Label Ecoprod</li><li><a href="#">Découvrir le Label</a></li><li><a href="#">Productions Labellisées</a></li><li><a href="#">Processus de labellisation</a></li><li class="gh">Carbon’Clap</li><li><a href="#">Découvrir Carbon’Clap</a></li><li><a href="#">Mode d’emploi Carbon’Clap</a></li><li><a href="#">L’Étiquette (publicité)</a></li><li><a href="#">ANiMPACT</a></li><li><a href="#">Indice RSE d’Ecoprod</a></li><li><a href="#">Prime RSE + (CNC)</a></li></ul></div><div class="dd"><a href="#" aria-haspopup="true">Formations<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2.5 4.5l3.5 3.5 3.5-3.5"/></svg></a><ul class="sub"><li><a href="#">Découvrir les formations</a></li><li><a href="#">Catalogue professionnels</a></li><li><a href="#">Catalogue écoles</a></li><li><a href="#">E-learning – StepUP</a></li></ul></div><div class="dd"><a href="#" class="on" aria-current="page" aria-haspopup="true">Ressources<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2.5 4.5l3.5 3.5 3.5-3.5"/></svg></a><ul class="sub"><li><a href="#">Toutes les ressources</a></li><li><a href="#">Les annuaires</a></li><li><a href="#">Vidéos</a></li></ul></div><a href="#">Projet ALEA</a><div class="dd"><a href="#" aria-haspopup="true">Actualités<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2.5 4.5l3.5 3.5 3.5-3.5"/></svg></a><ul class="sub"><li><a href="#">Toutes les actualités</a></li><li><a href="#">L’agenda</a></li><li><a href="#">Les Assises de l’éco-production</a></li><li><a href="#">Prix Ecoprod</a></li></ul></div><div class="dd"><a href="#" aria-haspopup="true">Association<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2.5 4.5l3.5 3.5 3.5-3.5"/></svg></a><ul class="sub"><li><a href="#">Association Ecoprod</a></li><li><a href="#">Équipes</a></li><li><a href="#">Membres Ecoprod</a></li><li><a href="#">Carte des membres</a></li><li><a href="#">Groupes de travail</a></li><li><a href="#">Charte Ecoprod</a></li></ul></div>
+    </div>
+    <a class="pill l" href="#">Espace membre</a>
+    <a class="pill d" href="#">Devenir membre</a>
+    <div class="dd lang"><a href="#" aria-label="Langue : français" aria-haspopup="true"><span class="flag" aria-hidden="true"><i style="background:#2a4fa8"></i><i style="background:#fff"></i><i style="background:#e0283a"></i></span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2.5 4.5l3.5 3.5 3.5-3.5"/></svg></a><ul class="sub sm"><li><a href="#" lang="en"><span class="flag" aria-hidden="true"><i style="background:#1f3c88"></i><i style="background:#fff"></i><i style="background:#c8102e"></i></span>English</a></li></ul></div>
+    <svg class="srch" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" role="img" aria-label="Rechercher sur le site"><circle cx="9.5" cy="9.5" r="7"/><path d="M15 15l5 5" stroke-linecap="round"/></svg>
+    <svg class="burger" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" role="img" aria-label="Menu"><path d="M3 6h16M3 11h16M3 16h16"/></svg>
+  </nav>
+</div>
+
+<main class="tool" id="contenu" aria-label="Bonnes pratiques IA">
+  <div class="tool-in">
+    <div class="bar">
+      <label class="sbox"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4" stroke-linecap="round"/></svg>
+        <input id="q" type="search" autocomplete="off" aria-label="Chercher une carte ou une question"></label>
+      <div class="seg" role="group" aria-label="Affichage">
+        <button type="button" id="m-rings" data-m="rings" aria-pressed="true">Qui peut agir</button>
+        <button type="button" id="m-list" data-m="list" aria-pressed="false">Cartes</button>
+      </div>
+    </div>
+    <p class="cap" id="cap" aria-live="polite"></p>
+    <div class="ring-view" id="rings"><div class="radar" id="radar" aria-label="Schéma des six catégories, de l'individu à la filière"><div class="tip" id="tip"></div></div><div class="names" id="names"></div></div>
+    <div class="list-view" id="list" hidden></div>
+  </div>
+</main>
+
+<section class="about" aria-labelledby="about-t">
+  <div class="about-in">
+    <h1 id="about-t">Bonnes pratiques IA</h1>
+    <p class="ver">Version du 3 novembre 2026</p>
+    <p>Ces cartes rassemblent des bonnes pratiques pour réduire l'impact environnemental de l'IA dans l'audiovisuel, le cinéma et la publicité. Chacune dit qui peut agir, qui peut l'exiger, et sur quelles sources elle s'appuie.</p>
+    <p>C'est un support de discussion, pas un audit. Les données publiées sur l'impact de l'IA restent partielles et changent vite, d'où l'année et la source données avec chaque chiffre.</p>
+    <p>Dans le schéma, l'individu est au centre et la filière à l'extérieur. Plus une catégorie est loin du centre, plus une décision prise à ce niveau touche de monde.</p>
+    <p class="more-l">Pour aller plus loin : <a href="https://ecoprod.com/10-pistes-pour-une-ia-plus-responsable/">10 pistes pour une IA plus responsable</a></p>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="foot-in">
+    <div class="f-id">
+      <img src="data:image/png;base64,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" alt="Ecoprod">
+      <p>Membres fondateurs : Audiens, Canal+, CST, Film Paris Région, France TV, TF1.</p>
+      <a class="pill d" href="#">Je m'inscris à la Newsletter</a>
+    </div>
+    <div class="f-col"><h2>Contact</h2><a href="#">LinkedIn</a><a href="#">Instagram</a><a href="#">Nous écrire</a></div>
+    <div class="f-col"><h2>Liens utiles</h2><a href="#">Label Ecoprod</a><a href="#">Carbon’ Clap</a><a href="#">Formations</a><a href="#">Ressources</a><a href="#">Kit Presse</a></div>
+    <p class="f-fund">Ce site fait partie du programme Modules Ecoprod, soutenu par France 2030 – La Grande Fabrique de l’Image.</p>
+  </div>
+  <div class="f-legal"><a href="#">Mentions légales</a><a href="#">Politique de confidentialité</a><span>© ecoprod 2026</span><a href="#top" class="totop" aria-label="Défiler vers le haut"><svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2.5 7.5L6 4l3.5 3.5"/></svg></a></div>
+</footer>
+
+<div class="overlay" id="ov" hidden><div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="card-title"></div></div>
+
+<script>
+/* Niveaux de responsabilité, du centre vers l'extérieur. fc = couleur du texte posé sur la couleur du niveau. */
+const LEVELS=[
+  {k:'ind',n:'Individu',fc:'#fff'},
+  {k:'pro',n:'Projet',fc:'#fff'},
+  {k:'str',n:'Structure',fc:'var(--ink)'},
+  {k:'pre',n:'Prestataires et clients',fc:'var(--ink)'},
+  {k:'eia',n:"Entreprises de l'IA",fc:'var(--ink)'},
+  {k:'fil',n:'Filière',fc:'var(--ink)'}
+];
+const ACTORS=LEVELS;
+const LV=Object.fromEntries(ACTORS.map(c=>[c.k,c]));
+const cvar=k=>`var(--c-${k})`, tvar=k=>`var(--t-${k})`;
+const FX={fort:"Effet important",moyen:"Effet moyen",faible:"Effet faible",indirect:"Effet indirect"};
+const SHOWN=3;
+/* Exemples de questions affichés dans la recherche, un tiré au hasard à chaque visite */
+const EXAMPLES=["Le mode réflexion consomme-t-il plus ?","Joindre un long PDF au chatbot, ça consomme plus ?","Faut-il une clause IA dans les contrats ?","Carbon'Clap prend-il en compte l'IA ?","Faut-il générer directement en 4K ?","Peut-on dire qu'on pollue moins grâce à l'IA ?"];
+
+const ALLCARDS=[
+{id:'r-tournage',s:"Tournage évité",c:'pro',i:3,red:1,t:"Présenter une scène créée par l'IA comme un tournage évité",
+ txt:`<p>Une scène créée par l'IA remplace rarement un tournage entier, car il reste les essais, les retouches et souvent des plans tournés. Le seul cas publié dans la filière compare une scène de série créée par l'IA avec la même scène en effets visuels classiques, pas avec un tournage, et ses auteurs le disent non généralisable.</p><p>Présenter la différence comme un tournage évité est une allégation environnementale, qui demande une preuve.</p>`,
+ q:["Ça a moins d'impact de faire un tournage en IA ou en méthode traditionnelle ?","Une pub générée par IA a-t-elle vraiment moins d'impact qu'une pub tournée ?"],
+ go:['preuve','etape'],k:"tournage evite substitution publicite",
+ src:"Carbon Trust et DIMPACT (2026) ; ADEME, Avis sur l'IA générative (2026)."},
+{id:'r-rachat',s:"Racheter du matériel",c:'ind',i:2,red:1,t:"Racheter un ordinateur ou un téléphone pour avoir les nouvelles fonctions d'IA intégrées",
+ txt:`<p>Utiliser un assistant en ligne n'use pas l'ordinateur : le calcul se fait sur les serveurs de l'entreprise de l'IA, et l'ordinateur affiche du texte comme pour une page web. Les fonctions d'IA installées sur l'appareil demandent en revanche des puces récentes et plus de mémoire. D'après l'ADEME, elles peuvent pousser à remplacer des équipements qui fonctionnent, et semblent surtout servir d'argument commercial pour l'instant.</p><p>En France, les terminaux représentent 79 % de l'empreinte carbone du numérique, et leur fabrication en fait la plus grande part.</p>`,
+ q:["Un assistant comme ChatGPT augmente-t-il la consommation de mon ordinateur, ou use-t-il mon ordinateur plus vite ?","Faut-il acheter un « PC IA » ou un téléphone « IA » ?"],
+ go:['decide','besoin'],k:"ordinateur telephone materiel pc achat",
+ src:"ADEME, Avis sur l'IA générative (2026) ; ADEME et Arcep, Évaluation de l'impact environnemental du numérique en France (chiffres 2020)."},
+{id:'r-minime',s:"Usage jugé minime",c:'ind',i:2,red:1,t:"Ne rien changer parce que son propre usage est minime",
+ txt:`<p>Une question posée à un assistant consomme peu, le problème tient au nombre. À partir de la consommation par question annoncée par OpenAI en 2025, l'ADEME calcule que les requêtes faites à ChatGPT demanderaient 884 MWh par jour, l'électricité de 145 000 personnes en France.</p><p>Les gestes qui pèsent le plus se prennent souvent à plusieurs, avec un réglage fixé pour toute une équipe ou une demande portée par toute une filière.</p>`,
+ q:["Si mon usage individuel est négligeable, pourquoi devrais-je changer quoi que ce soit ?","Moi, à mon échelle, je peux vraiment changer quelque chose ?"],
+ go:['reglages','voix','bilan'],k:"usage individuel negligeable",
+ src:"ADEME, Avis sur l'IA générative (2026)."},
+{id:'r-temps',s:"Temps gagné",c:'str',i:2,red:1,t:"Compter sur le temps gagné grâce à l'IA pour réduire son impact",
+ txt:`<p>Un outil plus rapide réduit l'impact seulement si le temps libéré ne sert pas à produire davantage, en versions, en contenus ou en projets. Les chercheurs appellent cela l'effet rebond. Dans l'enquête de McKinsey publiée en 2026, 10 à 18 % des répondants disent ressentir une pression pour prendre plus de travail grâce à l'IA.</p><p>Le temps gagné reste aussi à prouver, car il se mesure rarement.</p>`,
+ q:["Si l'IA me fait gagner du temps, est-ce que je pollue moins ?","Comment éviter que les gains de l'IA servent à produire plus ?"],
+ go:['etape','versions'],k:"temps gagne productivite effet rebond",
+ src:"Luccioni, Strubell et Crawford, From efficiency gains to rebound effects (2025) ; McKinsey, The state of AI (2026)."},
+{id:"r-vert",s:"Électricité verte",c:"str",t:"Dire qu'une électricité « verte » rend l'IA neutre en carbone",wip:1,red:1},
+{id:"r-compression",s:"Compression miracle",c:'pro',t:"Compter sur une meilleure compression par IA pour rendre la diffusion sobre",wip:1,red:1},
+{id:"r-calcul",s:"Calcul au clic",c:"ind",t:"Calculer l'impact de chaque question posée à l'IA",wip:1,red:1},
+{id:"r-compenser",s:"Compenser",c:"str",t:"Compenser les émissions de l'IA plutôt que de les réduire",wip:1,red:1},
+{id:"r-merci",s:"Ne plus dire merci",c:"ind",t:"Ne pas dire « merci » à l'assistant IA pour économiser de l'énergie",wip:1,red:1},
+{id:"r-doublage",s:"Doublage sans impact",c:"pro",t:"Croire qu'un doublage par l'IA n'a pas d'impact puisqu'il se passe de studio et de déplacement d'équipe",wip:1,red:1},
+{id:"r-local",s:"IA locale plus sobre",c:"ind",t:"Installer l'IA sur son ordinateur pour consommer moins d'énergie",wip:1,red:1},
+{id:"r-supprimer",s:"Supprimer ses conversations",c:"ind",t:"Supprimer ses vieilles conversations pour réduire l'impact de l'IA",wip:1,red:1},
+{id:'besoin',s:"Outils habituels",c:'ind',i:3,forme:'paires',large:'effet rebond',verif:'2026-10',
+ revoir:"Si les logiciels de bureau activent l'IA par défaut sans réglage possible, si leurs éditeurs publient la consommation de ces fonctions, ou si la consommation d'une demande de texte change d'ordre de grandeur.",
+ t:"Pour les tâches simples, commencer par ses outils habituels",
+ txt:`<p>Une partie des demandes faites à un assistant comme ChatGPT, Vibe (ex-Le Chat) ou Claude peut trouver sa réponse dans un tableur, un traitement de texte ou une messagerie.</p>`,
+ fig:{type:'list',items:["Le correcteur orthographique de la messagerie, dans Outlook ou Gmail, suffit en général pour corriger un mail.","Un document déjà fait, sur un projet précédent ou par un collègue, sert souvent de modèle pour un devis ou un planning.","Un ancien mail sur le même sujet peut servir de base pour répondre."]},
+ persp:"Une demande ponctuelle peut sembler négligeable, mais quand toute une équipe en fait une pour chaque mail, tous les jours, l'énergie consommée par les serveurs s'additionne. Plus un outil est simple à utiliser, plus il sert : c'est l'effet rebond. Les logiciels de bureau intègrent aussi l'IA, comme Copilot dans Word et Gemini dans Gmail. Leurs éditeurs publient peu de données sur ce que ces fonctions consomment.",
+
+ who:[['ind',"La personne qui fait la tâche"]],req:[['str',"La direction ou le service informatique"]],
+ q:["Quelles tâches ne valent pas l'IA, parce qu'un outil classique fait aussi bien ?","Faut-il vraiment l'IA pour construire plans de travail et plannings, ou un outil classique suffit-il ?"],
+ voir:['outil','reglages'],sit:"Au quotidien",act:"Une habitude à prendre",fx:'indirect',k:"fonction logiciel moteur besoin tableur traitement de texte formule planning devis feuille de service mail correcteur tache simple copilot effet rebond",
+ src:[["DINUM, CGDD et DAE, Fiche pratique pour l'achat responsable de solutions d'IA (2025)","https://ecoresponsable.numerique.gouv.fr/docs/2025/MINUMECO_fiche_IA_frugale_VF.pdf"],["AFNOR, Référentiel général pour l'IA frugale, Spec 2314 (2024)"],["ADEME, Avis sur l'IA générative (2026)","https://librairie.ademe.fr/economie-circulaire-et-dechets/9495-avis-de-l-ademe-l-intelligence-artificielle-generative-des-impacts-environnementaux-importants.html"],["Luccioni, Strubell et Crawford, From efficiency gains to rebound effects (2025)","https://arxiv.org/abs/2501.16548"]]},
+{id:'comparer',s:"Existant avant de générer",c:'ind',i:2,forme:'barres',verif:'2026-11',
+ revoir:"Si les entreprises de l'IA publient la consommation par vidéo, si des mesures paraissent pour la voix et la musique générées, ou si la génération de vidéos longues change l'ordre de grandeur.",
+ t:"Avant de générer une image, une vidéo, une voix ou une musique, chercher si elle existe déjà",
+ txt:`<p>Un plan déjà tourné, une archive ou une image de banque servent souvent sans rien générer. S'il faut générer, commencer par une image fixe, puis une vidéo courte en basse définition.</p>`,
+ fig:{type:'bars',max:100,rows:[["Réutiliser un plan, une voix, une musique",0,0,"rien à générer"],["Banque d'images ou de sons",0,0,"rien à générer"],["Image générée",0,3,"environ 3 Wh"],["Vidéo de 5 secondes générée",0,90,"environ 90 Wh"]]},
+ persp:"Doubler la durée ou la définition d'une vidéo peut multiplier sa consommation par quatre, selon l'ADEME. Pour les voix et les musiques générées, aucune mesure n'est encore publiée.",
+ who:[['ind',"La personne qui monte, illustre ou prépare des références visuelles"]],req:[['pre',"Le client ou la production, qui peut demander un plan réutilisé ou une image de banque"]],
+ q:["Générer des plans d'illustration au lieu d'un tournage de plans de coupe, est-ce plus sobre ?","Générer une voix de synthèse consomme-t-il beaucoup ?"],
+ voir:['droits-ia','avant-apres'],sit:"Pendant la fabrication",act:"Une habitude à prendre",fx:'moyen',k:"image video voix doublage musique generer generation banque d'images archives reutiliser plan essais iterations son librairie",
+ src:[["Carbon Trust et DIMPACT, The carbon impact of AI video generation (2026) : énergie pour une vidéo de 5 secondes","https://www.carbontrust.com/sites/default/files/documents/resource/public/The%20carbon%20impact%20of%20AI%20video%20generation_The%20Carbon%20Trust%20and%20DIMPACT.pdf"],["Luccioni, Jernite et Strubell, Power Hungry Processing (2024) : énergie pour une image générée","https://arxiv.org/abs/2311.16863"],["Delavande, Pierrard et Luccioni, Video Killed the Energy Budget (2025)","https://arxiv.org/html/2509.19222v1"],["ADEME, L'intelligence artificielle générative : des impacts environnementaux importants (2026)","https://librairie.ademe.fr/economie-circulaire-et-dechets/9495-11314-avis-de-l-ademe-l-intelligence-artificielle-generative-des-impacts-environnementaux-importants.html"]]},
+{id:'essais',s:"Essais légers",c:'ind',i:2,forme:'longue',large:'effet rebond',verif:'2026-11',
+ revoir:"Si les outils cités changent leurs modes brouillon ou leurs modèles légers, si l'agrandissement est intégré à la génération dans les principaux outils, ou si une mesure publiée de l'énergie d'un agrandissement par IA contredit l'estimation du Carbon Trust. À revoir au plus tard en mai 2027.",
+ t:"Faire les essais avec le mode le plus léger de l'outil, et n'agrandir que la version retenue",
+ txt:`<p>Trouver le bon plan avec l'IA demande souvent des dizaines d'essais avant d'en garder un. Chaque essai fait travailler les serveurs de l'outil et consomme de l'énergie, d'autant plus que l'image est grande et que la vidéo est longue.</p><p>La plupart des outils proposent pourtant un réglage plus léger pour cette recherche.</p>`,
+ fig:{type:'list',items:["Le mode brouillon de l'outil, souvent appelé Draft, Turbo ou Lite, suffit en général pour chercher le cadre et le mouvement, quitte à relancer la version retenue avec le modèle complet.","Pour une vidéo, un essai court, limité à la durée utile, consomme moins qu'un plan long.","Une fois le choix fait, l'agrandissement par l'IA se lance sur la seule version retenue, sans dépasser la définition de diffusion."]},
+ txt2:`<p>Pour une scène de série étudiée par le Carbon Trust en 2026, un studio d'effets visuels a généré tous ses essais en 720p, et n'a agrandi en 4K que les vidéos retenues. Si les 2 137 essais avaient été générés directement en haute définition (1080p), chacun aurait demandé environ cinq fois plus d'énergie, selon l'estimation du Carbon Trust.</p>`,
+ fig2:{type:'bars',max:2137,rows:[["Vidéos générées pour chercher (720p)",0,2137,"2 137"],["Vidéos agrandies pour la livraison (4K)",0,87,"87"]]},
+ persp:"Le studio a tout de même généré environ 25 vidéos pour chaque vidéo retenue. Un essai moins cher peut pousser à en lancer davantage : c'est l'effet rebond. Le nombre de versions se fixe donc aussi à l'échelle du projet.",
+ who:[['ind',"La personne qui génère les images ou les vidéos"]],req:[['pro',"La production, qui fixe le nombre de versions"],['pre',"Le client, en acceptant de valider sur des versions brouillon"]],
+ q:["Une petite image consomme-t-elle moins qu'une grande ?","Comment upscaler ou restaurer des images avec l'IA de façon plus sobre ?"],
+ voir:['comparer','versions'],sit:"Pendant la fabrication",act:"Une habitude à prendre",fx:'moyen',k:"video image definition 4K essais brouillon draft turbo lite agrandissement upscale upscaling topaz midjourney runway flow veo luma kling concept art storyboard animatique",
+ src:[["Carbon Trust et DIMPACT, The carbon impact of AI video generation (2026) : étude de cas d'une scène d'effets visuels","https://www.carbontrust.com/sites/default/files/documents/resource/public/The%20carbon%20impact%20of%20AI%20video%20generation_The%20Carbon%20Trust%20and%20DIMPACT.pdf"],["Delavande, Pierrard et Luccioni, Video Killed the Energy Budget (2025) : énergie selon la définition, la durée et les étapes de calcul","https://arxiv.org/abs/2509.19222"],["Midjourney, Draft Mode (consulté en novembre 2026)","https://docs.midjourney.com/hc/en-us/articles/35577175650957"],["Google, Flow : crédits par modèle et agrandissement (consulté en novembre 2026)","https://support.google.com/flow/answer/16526234"]]},
+{id:'outil',s:"Outil spécialisé",c:'ind',i:2,forme:'chiffre',large:'volume',verif:'2026-10',
+ revoir:"Si les assistants envoient eux-mêmes les tâches simples vers de petits modèles, si les logiciels de montage et de son remplacent leurs outils d'analyse par des fonctions génératives, ou si de nouvelles mesures remplacent celles de 2023 et 2025.",
+ t:"Pour trier, transcrire, traduire, détourer ou nettoyer un son, choisir un outil conçu pour cette tâche",
+ txt:`<p>Pour transcrire une interview ou traduire un texte, beaucoup passent par un assistant généraliste comme ChatGPT, Vibe (ex-Le Chat) ou Gemini. Le logiciel du métier sait souvent déjà le faire, avec un modèle conçu pour cette seule tâche, qui consomme en général beaucoup moins d'énergie, autant s'en servir d'abord&nbsp;!</p>`,
+ fig:{type:'big',items:[["Jusqu'à 35 fois<sup>*</sup>","plus d'énergie pour traduire avec un petit modèle polyvalent qu'avec un modèle conçu pour la traduction."]],p:"* Les grands assistants comme ChatGPT n'ont pas été mesurés de cette façon."},
+ persp:"DeepL repose depuis 2024 sur un grand modèle de langage, et aucune mesure publiée ne le compare encore à ChatGPT. Un outil spécialisé consomme lui aussi de l'énergie, d'autant plus quand il traite des heures de programmes.",
+ who:[['ind',"La personne au montage, au son, aux effets visuels, au sous-titrage ou aux archives"]],req:[['str',"La production ou le studio, qui fournit les logiciels et paie les licences"]],
+ q:["La traduction avec DeepL a-t-elle moins d'impact qu'avec ChatGPT ?","Comment transcrire des interviews et rushes avec l'IA de façon plus sobre ?"],
+ voir:['besoin','publie'],sit:"Pendant la fabrication",act:"Une habitude à prendre",fx:'moyen',k:"rushes archives transcription sous-titres sous-titrage traduction detourage rotoscopie son debruitage voix deepl whisper premiere davinci avid media composer izotope silhouette mocha eztitles subtitle edit iconik axle effets visuels montage indexation",
+ src:[["Luccioni, Jernite et Strubell, Power Hungry Processing (2024)","https://arxiv.org/abs/2311.16863"],["UCL et UNESCO, Smarter, smaller, stronger (2025)","https://discovery.ucl.ac.uk/id/eprint/10215820"],["CNC et BearingPoint, Quel impact de l'IA sur les filières du cinéma, de l'audiovisuel et du jeu vidéo ? (2024)","https://www.cnc.fr/documents/36995/2097582/Cartographie+des+usages+IA_rapport+complet.pdf"],["DeepL, annonce de son modèle de langage pour la traduction (2024)","https://www.deepl.com/en/press-release/deepl-launches-next-generation-llm-that-outperforms-gpt-4-google-and-microsoft-for-translation-quality"]]},
+{id:"reflexion",s:"Mode réflexion",c:'ind',t:"Dans un assistant conversationnel, couper le mode réflexion pour les questions simples",wip:1},
+{id:"court",s:"Réponse courte",c:'ind',t:"Dans un assistant conversationnel, demander une réponse courte et ne joindre que le passage utile",wip:1},
+{id:"conversation",s:"Nouvelle conversation",c:'ind',t:"Ouvrir une nouvelle conversation plutôt que de prolonger un échange très long",wip:1},
+{id:'connect',s:"Connecteurs",c:'ind',i:2,t:"Avant de relier un assistant à ses logiciels ou à ses fichiers, savoir ce que ce lien fait tourner et ce qu'il peut lire",
+ ctx:"Usage concerné : connecteurs et agents reliés à une messagerie, un stockage en ligne, un logiciel de montage ou de 3D, un navigateur.",
+ txt:`<p>Un connecteur, par exemple un connecteur MCP, permet à un assistant de lire des fichiers et d'agir dans un logiciel. Chaque fichier ouvert s'ajoute à ce que l'assistant doit lire, et chaque action le fait travailler de nouveau, souvent sans que l'utilisateur le voie. L'ADEME range le mode agent parmi les nouveaux usages les plus consommateurs.</p><p>Le même lien ouvre l'accès aux données : un assistant branché sur la messagerie lit tous les messages auxquels il a droit.</p>`,
+ persp:"Pour une tâche ponctuelle, copier le passage utile dans la conversation reste plus léger qu'un connecteur ouvert sur tout un disque.",
+ who:[['ind',"La personne qui installe le connecteur"],['str',"Le service informatique"]],req:[['str',"La direction, qui autorise les connecteurs"]],
+ q:["C'est quoi un connecteur ou un MCP ?","Brancher l'IA sur ma messagerie, c'est plus ou moins d'impact que de copier-coller ?"],
+ sit:"Au quotidien",act:"Un réglage dans ses outils",fx:'moyen',k:"mcp agent connecteur automatisation messagerie",
+ src:"ADEME, Avis sur l'IA générative (2026) ; ANSSI, Recommandations de sécurité pour un système d'IA générative (2024)."},
+{id:"desactiver",s:"Fonctions automatiques",c:'ind',t:"Désactiver les fonctions d'IA automatiques qui ne servent pas",wip:1},
+{id:'confidentiel',s:"IA locale et confidentialité",c:'ind',i:2,forme:'etapes',verif:'2026-11',
+ revoir:"Si le modèle cité est remplacé dans les catalogues, si les petits modèles installés traitent correctement un scénario entier sur un portable courant, si les outils cités changent de modèle gratuit, ou si les fonctions d'IA sur l'appareil exigent moins de matériel récent.",
+ t:"Pour les documents confidentiels, utiliser un modèle d'IA local",
+ txt:`<p>Un modèle local tourne sur une machine contrôlée par l'utilisateur ou par sa structure, sans envoyer le document sur internet. C'est ce que la CNIL recommande de privilégier pour les données sensibles.</p>`,
+ fig:{type:'list',items:["Sur son ordinateur, avec un logiciel gratuit comme LM Studio ou Ollama et un modèle léger qui parle français, comme Ministral 3 de Mistral. Il faut un Mac avec une puce M1 ou plus récente, ou un PC de 16 Go de mémoire.","Dans la structure, avec un modèle installé sur un serveur interne et partagé par l'équipe : c'est le déploiement « sur site »."]},
+ txt2:`<p>Sur un ordinateur, un petit modèle convient pour relire un passage ou résumer un document court, pas pour un scénario entier, qui peut être tronqué sans avertissement. Avant tout, relire ce que permet la clause de confidentialité.</p>`,
+ persp:"Côté énergie, rien ne garantit qu'un modèle local consomme moins : à modèle égal, les serveurs des centres de données font 1,4 à 7 fois plus de travail par unité d'énergie qu'un ordinateur.",
+ who:[['ind',"La personne qui manipule le document"],['str',"La direction ou le service informatique, pour un modèle partagé"]],req:[],
+ q:["Un modèle local protège-t-il mieux nos données et nos scénarios ?","Un modèle local est-il aussi bon que ChatGPT ?"],
+ voir:['donnees','r-rachat'],sit:"Au quotidien",act:"Une habitude à prendre",fx:'indirect',k:"modele local sur site serveur interne ia locale installer ordinateur lm studio ollama confidentiel scenario contrat casting modele local hors ligne materiel racheter pc ia apple intelligence copilot",
+ src:[["CNIL, Comment déployer une IA générative (2024)","https://cnil.fr/fr/comment-deployer-une-ia-generative-la-cnil-apporte-de-premieres-precisions"],["Ollama, fiche du modèle Ministral 3 (2026)","https://ollama.com/library/ministral-3"],["LM Studio, configuration requise (2026)","https://lmstudio.ai/docs/app/system-requirements"],["Saad-Falcon et al., Intelligence per Watt, Stanford et Together AI (2025)","https://arxiv.org/abs/2511.07885"]]},
+{id:'chiffre',s:"Citer un chiffre",c:'ind',i:2,forme:'longue',large:'volume',verif:'2026-11',
+ revoir:"Si l'AIE publie de nouveaux chiffres d'émissions des centres de données ou de l'aviation, si une entreprise de l'IA publie une mesure vérifiée par un tiers, ou si l'ADEME publie des chiffres de référence par usage. À revoir chaque année.",
+ t:"Citer un chiffre sur l'IA avec ce qu'il mesure, son année et sa source",
+ txt:`<p>Les chiffres sur l'IA circulent souvent sans leur source, et la presse elle-même s'y perd : en 2025, les trois quarts des articles qui chiffraient l'énergie d'une question à ChatGPT le faisaient sans source. Or un chiffre faux, dans un sens comme dans l'autre, finit souvent par servir d'argument pour ne rien changer !</p>`,
+ fig:{type:'list',items:["« Une conversation avec ChatGPT consomme une bouteille d'eau. » Pas tout à fait : une étude de 2023 sur GPT-3, un modèle remplacé depuis, trouvait un demi-litre pour 10 à 50 réponses, surtout de l'eau utilisée pour produire l'électricité des serveurs.","« L'IA pollue plus que l'aviation. » Selon l'Agence internationale de l'énergie, les centres de données émettaient environ 180 millions de tonnes de CO2 en 2024, l'aviation près de 950 millions en 2023, et l'IA en pèserait environ 15 %. Ces chiffres ne comparent que le CO2, sans l'eau, les métaux ni les déchets, et les émissions des centres de données augmentent, comme celles de l'aviation.","« Une question à l'IA, c'est moins de neuf secondes de télévision. » La comparaison vient de Google, à partir de ses propres chiffres que personne n'a pu vérifier, et porte sur une seule question, alors que des milliards sont posées chaque jour."]},
+ txt2:`<p>Un assistant comme ChatGPT ou Vibe (ex-Le Chat) n'a pas de mesure de son propre impact, et il peut inventer une source. Les publications publiques restent plus sûres :</p>`,
+ fig2:{type:'links',items:[["Avis de l'ADEME sur l'IA générative (2026)","https://librairie.ademe.fr/economie-circulaire-et-dechets/9495-11314-avis-de-l-ademe-l-intelligence-artificielle-generative-des-impacts-environnementaux-importants.html","Position de l'agence de la transition écologique, chiffres et recommandations"],["Rapport de l'Arcep sur l'IA générative et l'environnement (2026)","https://www.arcep.fr/uploads/tx_gspublication/rapport-IA-et-environnement_210526.pdf","Ce que mesurent les chiffres publiés, et leurs limites"],["compar:IA","https://comparia.beta.gouv.fr/","Comparateur public d'assistants, avec une estimation de leur impact"]]},
+ persp:"Une question posée à ChatGPT consomme peu d'énergie. Mais en 2025, OpenAI annonçait 2,6 milliards de questions par jour, et l'ADEME calcule que cela équivaut chaque jour à la consommation électrique de 145 000 personnes en France. L'impact peut donc sembler négligeable quand il est vu question par question, et important une fois additionné.",
+ who:[['ind',"Toute personne qui cite un chiffre sur l'IA, en réunion, dans un document ou face à un client"]],req:[['str',"La personne qui valide la communication de la structure"]],
+ q:["Quels chiffres sur l'IA puis-je citer sans risque de dire une bêtise ?","Est-il vrai qu'une conversation avec ChatGPT consomme une bouteille d'eau ?"],
+ voir:['preuve','bilan'],sit:"Au quotidien",act:"Une prudence dans sa communication",fx:'indirect',k:"chiffre source annee citer bouteille eau aviation television neuf secondes greenwashing fiable chatgpt combien pollue catastrophique negligeable ademe arcep comparia",
+ src:[["Luccioni et al., Misinformation by Omission (2025) : chiffres relayés sans source par la presse","https://arxiv.org/abs/2506.15572"],["Li, Yang, Islam et Ren, Making AI Less « Thirsty » (2023, publié en 2025) : eau par réponse de GPT-3","https://arxiv.org/abs/2304.03271"],["AIE, Energy and AI (2025) et page Aviation : émissions des centres de données (2024) et de l'aviation (2023)","https://www.iea.org/reports/energy-and-ai/ai-and-climate-change"],["Google, Measuring the environmental impact of delivering AI at Google scale (2025)","https://arxiv.org/abs/2508.15734"]]},
+{id:'versions',s:"Versions comptées",c:'pro',i:3,forme:'clause',large:'volume',verif:'2026-11',
+ revoir:"Si AdGreen ou un calculateur français publie de nouveaux volumes de contenus générés, si une organisation professionnelle française publie une clause type sur l'IA et les versions, ou si le règlement européen sur l'IA change les obligations de déclaration.",
+ t:"Fixer au devis le nombre de versions, et compter celles créées par l'IA sur chaque projet",
+ txt:`<p>Avec l'IA, les versions se multiplient vite. Depuis février 2026, le calculateur carbone de la publicité britannique, AdGreen, a enregistré environ 400 000 vidéos générées, soit 56 tonnes d'équivalent CO2, et AdGreen constate que ces outils rendent « très facile » de produire énormément de contenus.</p><p>Une version montrée au client en cache souvent des dizaines générées en amont, et chaque génération demande de l'énergie aux serveurs, environ 30 fois plus pour une courte vidéo que pour une image. Compter les images et les secondes de vidéo générées sur chaque projet montre où le volume grimpe, et c'est souvent à cause des retours successifs du client, avec ou sans IA. Écrire au devis le nombre de versions incluses, et dans le contrat entre client et prestataire les outils d'IA prévus, permet d'en parler avant de commencer.</p>`,
+ tip:"Deux lignes de devis peuvent suffire : « Deux séries de retours incluses ; au-delà, chaque version est facturée. » et « Outils d'IA prévus : génération d'images pour les pistes visuelles, non conservées dans le film final. »",
+ persp:"Certains contrats imposent au contraire un nombre minimal de versions, pour laisser la place aux retours : mieux vaut le savoir avant de signer.",
+ who:[['pro',"La production"],['pre',"Le prestataire, qui rédige le devis"]],req:[['pre',"Le client ou le diffuseur, qui valide le devis et le contrat"]],
+ q:["Avec l'IA on produit dix versions d'une pub au lieu d'une : est-ce un problème ?","Faut-il une clause IA dans les contrats avec les prestataires ?"],
+ voir:['essais','preuve'],sit:"Au lancement d'un projet",act:"Une clause au devis ou au contrat",fx:'moyen',k:"versions declinaisons essais iterations publicite video devis contrat clause prestataire client retours adgreen appel d'offres",
+ src:[["AdGreen, intervention au forum IA de l'IPA (juin 2026) : vidéos générées enregistrées dans le calculateur","https://the-ipa.shorthandstories.com/ipai-forum-june-2026/future-of-the-industry/environmental-impact-of-ai-production/"],["Carbon Trust et DIMPACT, The carbon impact of AI video generation (2026) : itérations et minimum contractuel","https://www.carbontrust.com/sites/default/files/documents/resource/public/The%20carbon%20impact%20of%20AI%20video%20generation_The%20Carbon%20Trust%20and%20DIMPACT.pdf"],["AICP, National Guidelines Post Production (2026) : versions listées au devis","https://aicp.nyc3.digitaloceanspaces.com/content/assets/editor/PDFs/Post_Production_Guidelines_012126_FINAL.pdf"],["Delavande, Pierrard et Luccioni, Video Killed the Energy Budget (2025) : énergie d'une vidéo et d'une image générées","https://arxiv.org/abs/2509.19222"]]},
+{id:"une-fois",s:"Faire une seule fois",c:'pro',t:"Dépouiller un scénario ou scanner un lieu une seule fois pour toutes les équipes",wip:1},
+{id:'etape',s:"Étape remplacée ou ajoutée",c:'pro',i:2,t:"Distinguer une étape remplacée par l'IA d'une étape ajoutée",
+ ctx:"Usage concerné : préparation, repérages, prévisualisation, montage, effets visuels, toute étape où un outil d'IA arrive.",
+ txt:`<p>L'IA réduit un impact seulement si elle remplace une étape, comme un déplacement, un rendu 3D ou un tournage. Quand elle s'ajoute aux étapes existantes, avec des pistes visuelles créées en plus des repérages ou une version de plus pour le client, son impact s'additionne au reste.</p><p>L'ADEME propose une méthode pour le vérifier au cas par cas : comparer ce qui se passe avec et sans l'outil, en comptant aussi ce qu'il fait apparaître.</p>`,
+ persp:"La même question vaut pour le temps gagné, qui réduit l'impact seulement s'il ne sert pas à produire davantage.",
+ who:[['pro',"La production"],['str',"Le référent RSE ou éco-production"]],req:[['pre',"Le diffuseur"],['fil',"Le financeur"]],
+ q:["Générer des images de repérage évite-t-il des déplacements de repérage ?","Comment comparer honnêtement un tournage et une génération, avec les itérations ?"],
+ sit:"Au lancement d'un projet",act:"Une règle d'équipe à fixer",fx:'indirect',k:"effet rebond substitution reperage previsualisation",
+ src:"ADEME, IT4Green, fiches pratiques sur les effets directs et indirects du numérique (2026) ; Luccioni, Strubell et Crawford (2025)."},
+{id:'preuve',s:"Preuve avant d'affirmer",c:'pro',i:3,forme:'grille',verif:'2026-11',
+ revoir:"À l'adoption de la loi qui transpose la directive 2024/825 (projet DDADUE), à la parution d'une analyse de cycle de vie publique comparant IA et tournage avec sa méthode, ou à un nouvel avis de l'ADEME.",
+ t:"Avant d'affirmer que l'IA réduit l'impact environnemental, en avoir la preuve",
+ ctx:"Usage concerné : communication, réponse à un appel d'offres, dossier d'aide, rapport RSE.",
+ txt:`<p>Des agences et des studios peuvent mettre en avant des contenus créés par IA comme beaucoup moins émetteurs qu'un tournage, or leur méthode est rarement publiée. Selon l'ADEME, aucune étude connue ne démontre à ce jour un gain environnemental chiffré dû à l'IA générative. Les rares études favorables, comme celle de Scientific Reports en 2024 sur l'écriture et l'illustration, ne comptent que le carbone, sans l'eau, les métaux ni l'effet rebond.</p><p>En France, affirmer sans preuve qu'un produit pollue moins peut constituer une pratique commerciale trompeuse, entre professionnels aussi. L'amende peut atteindre 80 % des dépenses engagées pour la publicité en cause.</p>`,
+ fig:{type:'checks',items:["Le tournage comparé aurait-il vraiment eu lieu, avec ces déplacements et ces décors ?","Le calcul compte-t-il tous les essais générés, et pas seulement la version retenue ?","La méthode est-elle publiée ? Vérifiée par un tiers ?"]},
+ persp:"Sans preuve, décrire ce qui a été fait plutôt que ses effets : « décors générés, sans repérage sur place ». Une directive européenne, applicable depuis septembre 2026 mais pas encore transposée en France, interdit aussi les allégations vagues comme « verte » ou « éco-responsable ».",
+ who:[['str',"La personne qui rédige la communication, le dossier d'aide ou la réponse à l'appel d'offres"],['pre',"Le prestataire qui annonce un gain"]],req:[['pre',"Le client, l'annonceur ou le diffuseur, qui valide la communication"]],
+ q:["Peut-on dire qu'on pollue moins grâce à l'IA ?","Comment répondre à un client qui dit que l'IA rend sa pub plus verte ?"],
+ voir:['avant-apres','chiffre'],sit:"Au moment de rendre compte",act:"Une prudence dans sa communication",fx:'indirect',k:"communication greenwashing allegation environnementale verte eco-responsable bas carbone chiffres preuve pub publicite tournage directive",
+ src:[["ADEME, L'intelligence artificielle générative : des impacts environnementaux importants (2026)","https://librairie.ademe.fr/economie-circulaire-et-dechets/9495-11314-avis-de-l-ademe-l-intelligence-artificielle-generative-des-impacts-environnementaux-importants.html"],["Tomlinson et al., The carbon emissions of writing and illustrating are lower for AI than for humans, Scientific Reports (2024)","https://doaj.org/article/382603a1022b48cb9350a9ccbc28aefa"],["Code de la consommation, articles L121-2, L121-5 et L132-2 (2024)"],["Directive (UE) 2024/825 sur les allégations environnementales (2024)"]]},
+{id:"droits-ia",s:"Droits des contenus générés",c:'pro',t:"Vérifier les droits sur les images, les voix et les musiques créées par l'IA avant de diffuser",wip:1},
+{id:"avant-apres",s:"Avant et après",c:'pro',t:"Quand l'IA sert à réduire un déplacement, une consommation ou des déchets, comparer avant et après, sur plusieurs critères, pas uniquement le carbone",wip:1},
+{id:"cycle",s:"Cycle de vie",c:'pro',t:"Comparer IA et méthode classique sur tout le cycle de vie, pas seulement le CO2e",wip:1},
+{id:'trace',s:"Trace et déclaration",c:'pro',i:1,t:"Garder la trace des outils d'IA utilisés, et déclarer leur usage quand une aide ou un diffuseur le demande",
+ ctx:"Usage concerné : dossiers d'aide, livraisons aux diffuseurs, contenus créés avec l'IA et diffusés.",
+ txt:`<p>Noter au fil du projet quels outils d'IA ont servi, à quelle étape et pour quel volume. Cette trace sert à répondre aux financeurs et aux diffuseurs, à tenir le bilan carbone, et à savoir plus tard ce qui a été créé par l'IA.</p><p>Une déclaration est déjà demandée par :</p><ul><li>le CNC, dans les dossiers d'aide, annoncée en octobre 2025 ;</li><li>Téléfilm Canada, au dépôt et à la clôture ;</li><li>Netflix, qui demande à ses partenaires de l'informer, avec un accord écrit dans certains cas ;</li><li>le règlement européen sur l'IA, pour les contenus truqués réalistes, depuis août 2026.</li></ul>`,
+ persp:"Une déclaration sert à suivre les usages. Elle ne présente jamais l'IA comme une façon de polluer moins.",
+ who:[['pro',"La production"]],req:[['fil',"Les financeurs"],['pre',"Les diffuseurs"]],
+ q:["Est-ce que je dois dire au CNC que j'ai utilisé l'IA ?","Doit-on mentionner l'usage de l'IA dans les crédits ou la communication ?"],
+ sit:"Pendant la fabrication",act:"Une déclaration à faire",fx:'indirect',k:"declaration cnc diffuseur tracabilite credits",
+ src:"CNC (2025) ; Téléfilm Canada, politique sur l'IA (2025) ; règlement européen sur l'IA, article 50."},
+{id:"metadonnees",s:"Métadonnées à la source",c:'pre',t:"Rédiger une seule fois le résumé, les mots-clés et les sous-titres d'un programme, et les transmettre à chaque diffuseur",wip:1},
+{id:'decide',s:"Qui décide",c:'str',i:3,forme:'paires',verif:'2026-11',
+ revoir:"À la parution du guide Travail et CNIL sur l'introduction de l'IA, à une décision de la Cour de cassation sur la consultation du CSE, ou si l'article 4 du règlement européen sur l'IA change encore.",
+ t:"Fixer qui décide des outils d'IA, et quels usages sont admis ou à l'essai",
+ txt:`<p>Une règle tient mieux quand elle part des outils que l'équipe utilise déjà. Elle peut alors limiter les usages qui consomment le plus d'énergie, comme la vidéo générée, et couper les fonctions d'IA qui tournent sans être demandées. Selon un sondage Cegid et OpinionWay de 2026, la plupart des salariés qui utilisent l'IA passent par des outils que leur entreprise ne fournit pas, souvent sans le dire. Poser la question sans sanction aide à les connaître.</p>`,
+ fig:[{type:'bars',max:100,rows:[["Ensemble des salariés",0,67,"67 %"],["Salariés de PME",0,77,"77 %"]]},{type:'list',items:["Une charte, adoptée en équipe, range chaque usage en admis, à l'essai ou écarté, et nomme la personne qui décide.","Un registre de décisions, tenu cas par cas quand un outil ou une fonction arrive, note chaque décision et qui l'a prise. C'est souvent plus simple pour une petite structure ou un tournage."]}],
+  tip:"Une ligne de registre peut par exemple se limiter à : « Vidéo générée : à l'essai, en basse définition, décidé par la production le 3 novembre. »",
+ persp:"Dans une structure de 50 salariés ou plus, le comité social et économique (CSE), qui représente les salariés, peut demander à être consulté avant l'arrivée d'un outil d'IA, même à l'essai.",
+ who:[['str',"La direction ou, sur un tournage, la production, avec l'éco-référent ou le référent IA"]],req:[['str',"Le CSE, dans une structure de 50 salariés ou plus"],['pre',"Le client ou le diffuseur, qui peut fixer ses propres règles"]],
+ q:["Faut-il écrire une charte IA dans notre structure ?","Je n'ose pas dire que j'utilise l'IA à mon employeur : est-ce un problème ?"],
+ voir:['desactiver','essais'],sit:"Dans l'organisation de la structure",act:"Une règle d'équipe à fixer",fx:'indirect',k:"charte registre jurisprudence gouvernance regles usages autorises admis essai ecarte cse shadow ai usage cache referent",
+ src:[["Cegid et OpinionWay, L'IA en entreprise (2026) : salariés qui passent par des outils non fournis","https://www.cegid.com/fr/wp-content/uploads/sites/7/2026/09/cegid-sondage-opinionway-ia-en-entreprise.pdf"],["Latitudes, L'atelier d'1h30 pour écrire votre charte d'utilisation de l'IA générative (2026)","https://www.latitudes.cc/blog/latelier-d1h30-pour-ecrire-votre-charte-dutilisation-de-lia-generative"],["CNIL, Questions-réponses sur l'utilisation d'un système d'IA générative (2024)","https://cnil.fr/fr/les-questions-reponses-de-la-cnil-sur-lutilisation-dun-systeme-dia-generative"],["ActuIA, Quand consulter le CSE avant de déployer l'IA (2026)","https://actuia.com/actualite/quand-consulter-le-cse-avant-de-deployer-lia-octobre-2026"]]},
+{id:'reglages',s:"Réglages par défaut",c:'str',i:2,t:"Fixer des réglages légers par défaut dans les comptes d'équipe",
+ ctx:"Usage concerné : comptes d'équipe d'assistants, suites bureautiques avec IA intégrée, messageries.",
+ txt:`<p>Un réglage fixé pour toute une équipe compte plus que chaque question prise à part. Trois réglages pèsent le plus : le mode réflexion coupé par défaut, une version légère de l'assistant pour les tâches courantes, et les fonctions d'IA automatiques désactivées là où elles ne servent pas, comme les résumés de mails.</p><p>Le mode réflexion demande en moyenne trente fois plus d'énergie pour une même question. L'ADEME recommande que chacun puisse désactiver les fonctions d'IA ajoutées aux logiciels.</p>`,
+ persp:"Un abonnement commun ne réduit aucun calcul par lui-même. Son intérêt est de régler les outils une fois pour tous.",
+ who:[['str',"Le service informatique ou l'administrateur des comptes"]],req:[['str',"La direction"]],
+ q:["Copilot est activé partout dans Office : est-ce qu'il consomme même quand je ne l'utilise pas ?","Peut-on désactiver Copilot pour les équipes qui n'en ont pas besoin ?"],
+ sit:"À l'achat d'un outil",act:"Un réglage dans ses outils",fx:'moyen',k:"reglages mode reflexion raisonnement copilot desactiver comptes",
+ src:"Hugging Face, AI Energy Score v2 (2025) ; ADEME, Avis sur l'IA générative (2026)."},
+{id:'former',s:"Ordres de grandeur",c:'str',i:2,t:"Former aux ordres de grandeur de l'impact de l'IA, en commençant par ceux qui choisissent les outils",
+ ctx:"Usage concerné : formation des équipes et des décideurs, accueil des nouveaux arrivants.",
+ txt:`<p>Une formation qui porte seulement sur les outils apprend surtout à s'en servir davantage. Les ordres de grandeur donnent des repères pour choisir. Une image créée demande bien plus qu'un texte, une vidéo bien plus qu'une image, et le mode réflexion multiplie le calcul.</p><p>Les décideurs passent en premier, parce qu'ils choisissent les outils et leurs réglages pour toute l'équipe.</p>`,
+ persp:"Une formation utile relie chaque chiffre à un choix concret, comme l'outil retenu ou le nombre d'essais prévus au devis.",
+ who:[['str',"La direction"],['str',"Les responsables d'équipe"]],req:[['ind',"Les salariés"],['str',"Le référent RSE"]],
+ q:["Faut-il former les équipes à l'IA pour réduire l'impact ?","Où se former à un usage sobre de l'IA ?"],
+ sit:"Dans l'organisation de la structure",act:"Une règle d'équipe à fixer",fx:'indirect',k:"formation sensibilisation ordres de grandeur",
+ src:"ADEME, Avis sur l'IA générative (2026) ; Luccioni, Jernite et Strubell (2024) ; Hugging Face, AI Energy Score v2 (2025)."},
+{id:"lourds",s:"Usages les plus lourds",c:'str',t:"Repérer les usages d'IA les plus lourds de la structure et commencer par eux",wip:1},
+{id:"seuil",s:"Seuil d'usage",c:'str',t:"Suivre les volumes d'usage et fixer un seuil au-delà duquel l'usage est rediscuté",wip:1},
+{id:"tester",s:"Tester avant d'équiper",c:'str',t:"Avant d'équiper la structure, tester l'outil sur un projet et vérifier le matériel qu'il demande",wip:1},
+{id:"automatisation",s:"Automatisation simple",c:'str',t:"Pour une tâche répétitive, préférer une automatisation simple à un agent",wip:1},
+{id:"agent",s:"Cadrer un agent",c:'str',t:"Cadrer un agent avant de le laisser travailler seul",wip:1},
+{id:"reutiliser",s:"Réutiliser",c:'str',t:"Réutiliser les images, les plans et les calculs existants avant d'en créer de nouveaux",wip:1},
+{id:"savoir-faire",s:"Savoir-faire sans IA",c:'str',t:"Garder dans l'équipe des savoir-faire qui se passent de l'IA",wip:1},
+{id:"stations",s:"Stations de calcul",c:'str',t:"Faire évoluer les stations de calcul plutôt que de les remplacer, et les partager entre projets",wip:1},
+{id:"pays",s:"Pays des serveurs",c:'str',t:"Quand l'outil le permet, choisir des serveurs situés dans un pays à l'électricité bas carbone",wip:1},
+{id:"fichiers",s:"Conservation des fichiers",c:'str',t:"Fixer la durée de conservation et le nombre de copies des fichiers",wip:1},
+{id:"compression",s:"Compression par plan",c:'str',t:"Pour la diffusion, ajuster la compression à chaque plan",wip:1},
+{id:'donnees',s:"Données et confidentialité",c:'str',i:2,forme:'courte',verif:'2026-11',
+ revoir:"À chaque changement des réglages par défaut des assistants (ChatGPT, Gemini, Vibe, Claude, Copilot), à la prochaine publication de la CNIL sur l'IA au travail.",
+ t:"Avant de confier un document à l'IA, vérifier les réglages et la confidentialité",
+ sub:"C'est une question de confidentialité, qui est en marge de l'impact environnemental.",
+ txt:`<p>Dans les comptes gratuits et personnels, ChatGPT, Gemini ou Le Chat (devenu Vibe) peuvent utiliser les conversations et les fichiers joints pour entraîner leurs modèles, par défaut, sauf refus dans les réglages. Les offres entreprise l'excluent par contrat. Pour un scénario sous clause de confidentialité ou des données personnelles, la CNIL recommande de ne jamais passer par un service grand public. Sans autre outil, retirer au moins les noms et les adresses avant de joindre un document.</p>`,
+ persp:"Une IA installée sur l'ordinateur garde les documents sur la machine. Elle ne consomme pas forcément moins, et racheter un ordinateur pour la faire tourner alourdit l'empreinte.",
+ who:[['ind',"Chaque utilisateur, pour ses réglages"],['str',"La direction, pour le choix d'un compte entreprise"]],req:[['pre',"L'auteur, le diffuseur ou l'annonceur, par une clause de confidentialité dans le contrat"]],
+ q:["Les données que je mets dans ChatGPT servent-elles à entraîner le modèle ?","Je peux mettre des documents confidentiels dans ChatGPT ?"],
+ voir:['confidentiel','decide'],sit:"Au quotidien",act:"Un réglage dans ses outils",fx:'indirect',k:"donnees confidentialite scenario contrat rgpd entrainement reglages cnil chatgpt gemini vibe le chat mistral claude copilot compte entreprise",
+ src:[["CNIL, Questions-réponses sur l'utilisation d'un système d'IA générative (2024)","https://cnil.fr/fr/les-questions-reponses-de-la-cnil-sur-lutilisation-dun-systeme-dia-generative"],["OpenAI, Data Controls FAQ (consulté en novembre 2026)","https://help.openai.com/en/articles/7730893-data-controls-faq"],["Mistral, désactiver l'utilisation des données pour l'entraînement (2026)","https://help.mistral.ai/en/articles/455207-can-i-opt-out-of-my-input-or-output-data-being-used-for-training"],["Arcep, IA et environnement (2026)","https://www.arcep.fr/uploads/tx_gspublication/rapport-IA-et-environnement_210526.pdf"]]},
+{id:'bilan',s:"Bilan carbone",c:'str',i:2,forme:'grille',large:'volume',verif:'2026-11',
+ revoir:"Si la Base Empreinte de l'ADEME publie un facteur pour l'IA ou le cloud, si les calculateurs homologués par le CNC en 2026 ajoutent un poste IA, si EcoLogits couvre les images, ou si l'avis de l'ADEME de juillet 2026 est révisé.",
+ t:"Rendre compte de l'IA dans le bilan carbone par les usages et les volumes, pas par un calcul au clic",
+ txt:`<p>L'énergie consommée par une question posée à l'IA varie beaucoup selon le modèle et la réponse, et reste difficile à vérifier. Selon l'ADEME, mesurer un usage sur une année peut mieux refléter les émissions de gaz à effet de serre et inciter davantage à changer ses habitudes.</p><p>Le suivi peut rester proportionné. Les assistants de texte comme ChatGPT, Gemini ou Vibe (ex-Le Chat) consomment peu par question mais servent souvent : une estimation suffit en général, à partir du nombre d'utilisateurs et d'un usage moyen. Les usages qui demandent le plus de calcul se comptent plus précisément.</p>`,
+ fig:{type:'checks',items:["Combien de vidéos et d'images ont été générées sur l'année ou sur la production, et en quelle définition ?","Combien d'heures les machines de la structure ont-elles servi à faire tourner l'IA ?","Dans quels pays se trouvent les serveurs des outils utilisés ?"]},
+ persp:"L'ADEME n'a pas encore publié de valeur de référence pour convertir des volumes d'usage de l'IA en émissions. Quand un chiffre est demandé, un estimateur comme EcoLogits donne un ordre de grandeur, à présenter en fourchette et daté. Le résultat dépend aussi du pays des serveurs, selon la façon dont l'électricité y est produite.",
+ who:[['str',"La personne qui prépare le bilan carbone, souvent le référent RSE ou éco-production"]],req:[['str',"La direction, qui fixe le périmètre du bilan"],['pre',"Le diffuseur ou l'annonceur qui demande le bilan carbone d'une production"]],
+ q:["Faut-il compter l'IA dans le bilan carbone d'une production ?","Comment suivre dans le temps l'usage de l'IA dans la structure sans tout chiffrer ?"],
+ voir:['comparer','preuve'],sit:"Au moment de rendre compte",act:"Une règle d'équipe à fixer",fx:'indirect',k:"bilan carbone csrd mesure estimateur ecologits scope 3 volumes indicateurs requete calcul annuel serveurs pays gpu heures de calcul",
+ src:[["ADEME, L'intelligence artificielle générative : des impacts environnementaux importants (2026)","https://librairie.ademe.fr/economie-circulaire-et-dechets/9495-11314-avis-de-l-ademe-l-intelligence-artificielle-generative-des-impacts-environnementaux-importants.html"],["Arcep, Intelligence artificielle générative : quels défis environnementaux ? (2026)","https://www.arcep.fr/uploads/tx_gspublication/rapport-IA-et-environnement_210526.pdf"],["Carbon Trust et DIMPACT, The carbon impact of AI video generation (2026) : indicateurs à suivre par les sociétés de production","https://www.carbontrust.com/sites/default/files/documents/resource/public/The%20carbon%20impact%20of%20AI%20video%20generation_The%20Carbon%20Trust%20and%20DIMPACT.pdf"],["EcoLogits, méthodologie (2026) : estimation en fourchette, texte et vidéo","https://ecologits.ai/latest/methodology/"]]},
+{id:"conso-clients",s:"Informer ses clients",c:'pre',t:"Pour un prestataire, donner à ses clients ce que consomme son outil d'IA",wip:1},
+{id:'publie',s:"Ce que publie l'outil",c:'eia',i:2,t:"Avant de souscrire à un outil d'IA, chercher ce que l'entreprise publie sur sa consommation, et tenir compte de son silence",
+ ctx:"Usage concerné : achat d'un abonnement ou d'un service d'IA, pour une équipe ou un projet.",
+ txt:`<p>Avant de choisir un outil, regarder ce que l'entreprise de l'IA publie : un rapport environnemental, une analyse de cycle de vie, un score de consommation de ses modèles. Pour un achat important, la même question peut aussi figurer dans l'appel d'offres ou le contrat.</p>`,
+ fig:{type:'big',items:[["10 sur 13","grandes entreprises de l'IA évaluées fin 2025 ne publient aucune des données de base sur l'impact environnemental de leurs modèles"]]},
+ persp:"Une page qui annonce seulement une électricité « 100 % renouvelable » ne donne pas la consommation. Pas de chiffre ne veut pas dire pas d'impact, et ce silence se compare d'un outil à l'autre.",
+ who:[['str',"Le responsable technique ou des achats"]],req:[['str',"La direction"],['fil',"Les organisations de la filière"]],
+ q:["Quels fournisseurs d'IA publient des informations sur leur impact ?","Quelles questions poser à un fournisseur d'IA avant de signer ?"],
+ sit:"À l'achat d'un outil",act:"Une question à poser",fx:'indirect',k:"fournisseur entreprise achat transparence abonnement",
+ src:"Stanford CRFM, Foundation Model Transparency Index (2025) ; DINUM, DAE et CGDD, fiche achat responsable de solutions d'IA (2025)."},
+{id:"serveurs-vie",s:"Vie des serveurs",c:'eia',t:"À la signature d'un contrat d'hébergement ou de rendu, demander la durée de vie des serveurs et leur devenir",wip:1},
+{id:"documentation",s:"Où tourne le calcul",c:'eia',t:"Vérifier dans la documentation d'un logiciel si ses fonctions d'IA tournent sur l'ordinateur ou en ligne",wip:1},
+{id:"promesses",s:"Promesses vertes",c:'eia',t:"Vérifier les promesses d'outils « verts »",wip:1},
+{id:'voix',s:"Demande commune",c:'fil',i:3,t:"Porter d'une seule voix, par les organisations de la filière, les demandes de données aux entreprises de l'IA",
+ ctx:"Usage concerné : relations de la filière avec les grandes entreprises de l'IA.",
+ txt:`<p>Une société de production seule ne pèse rien face à OpenAI ou Google. Une demande commune, avec les mêmes questions et le même format de réponse, a plus de chances d'aboutir. Le rapport du Carbon Trust pour la filière le recommande, et les groupes membres de DIMPACT, dont la BBC, ITV, Sky et Netflix, partagent déjà un outil de mesure depuis 2020.</p>`,
+ persp:"L'ADEME appelle aussi à une méthode de mesure commune et à plus de transparence des grandes entreprises de l'IA. Les données obtenues servent à choisir entre les outils et à suivre les volumes.",
+ who:[['fil',"Les organisations professionnelles"],['fil',"Les groupements de structures"]],req:[['pre',"Les diffuseurs"],['fil',"Les financeurs"]],
+ q:["La filière peut-elle peser sur les géants de l'IA ?","Comment signaler à un fournisseur qu'on veut des données d'impact ?"],
+ sit:"Dans les instances de la filière",act:"Une démarche à plusieurs",fx:'indirect',k:"filiere collectif transparence donnees fournisseurs",
+ src:"Carbon Trust et DIMPACT (2026) ; ADEME, Avis sur l'IA générative (2026) ; Stanford CRFM (2025)."},
+{id:"methode",s:"Méthode commune",c:'fil',t:"Adopter une méthode commune et multicritère pour rendre compte de l'IA dans les bilans",wip:1},
+{id:"volume",s:"Volume de la filière",c:'fil',t:"Suivre le volume de contenus créés par l'IA dans la filière, pour mesurer l'effet rebond",wip:1},
+{id:"aides",s:"Aides publiques",c:'fil',t:"Faire entrer l'IA dans les conditions des aides publiques",wip:1},
+{id:'rex',s:"Retours d'expérience",c:'fil',i:1,t:"Partager les retours d'expérience entre structures",
+ ctx:"Usage concerné : groupes de travail, rencontres professionnelles, réseaux de membres.",
+ txt:`<p>Peu de chiffres existent sur l'impact de l'IA dans la production audiovisuelle, et presque aucun en France. Ce que les structures observent sur leurs propres projets comble une partie du manque : le nombre d'essais avant un plan retenu, les outils abandonnés, le temps réellement gagné ou perdu, les réactions des clients.</p><p>Un retour d'expérience compte aussi quand l'IA n'a pas été retenue, avec la raison.</p>`,
+ persp:"Au Royaume-Uni, le BFI recommande de mettre en commun les connaissances et les pratiques de la filière sur l'IA.",
+ who:[['fil',"Les organisations professionnelles"],['str',"Les structures volontaires"]],req:[],
+ q:["J'ai arrêté d'utiliser l'IA : est-ce que ça vaut le coup d'en parler autour de moi ?","Comment accompagner les productions de ma région sur l'IA ?"],
+ sit:"Dans les instances de la filière",act:"Une démarche à plusieurs",fx:'indirect',k:"retours experience partage filiere",
+ src:"BFI et CoSTAR Foresight Lab, AI in the Screen Sector (2025) ; CNC et BearingPoint (2024)."},
+{id:"signaler",s:"Mention commune",c:'fil',t:"Signaler l'usage de l'IA de la même façon dans toute la filière",wip:1}
+];
+
+/* Fausses bonnes pratiques masquées pour l'instant (choix d'Adrien, 29 octobre) */
+/* Nombre de questions du tableau des profils rattachées à chaque carte (30 octobre) : ordre « les plus demandées d'abord » */
+const NQ={"besoin": 57, "comparer": 30, "essais": 16, "outil": 32, "reflexion": 9, "court": 13, "conversation": 2, "connect": 0, "desactiver": 11, "confidentiel": 18, "chiffre": 15, "versions": 7, "une-fois": 6, "etape": 4, "preuve": 21, "avant-apres": 6, "cycle": 9, "trace": 13, "devis": 6, "metadonnees": 1, "decide": 17, "reglages": 9, "former": 13, "lourds": 0, "seuil": 1, "tester": 8, "automatisation": 6, "agent": 14, "reutiliser": 5, "savoir-faire": 4, "stations": 8, "pays": 5, "fichiers": 3, "compression": 2, "donnees": 20, "bilan": 17, "conso-clients": 6, "publie": 8, "serveurs-vie": 6, "documentation": 5, "promesses": 6, "voix": 9, "methode": 2, "volume": 7, "aides": 3, "rex": 3, "signaler": 1};
+const SHOW_RED=false;
+// Cartes revues avec le skill cartes-recos-ia ; les autres sont grisées et rangées en fin de catégorie.
+const REVUES=['besoin','outil','preuve','comparer','donnees','confidentiel','decide','bilan','essais','chiffre','versions'];
+const dim=x=>x.wip||!REVUES.includes(x.id)?1:0;
+const CARDS=ALLCARDS.filter(x=>SHOW_RED||!x.red);
+
+const BY=Object.fromEntries(CARDS.map(x=>[x.id,x]));
+const $=id=>document.getElementById(id);
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+const plain=x=>norm([x.s||'',x.t,x.ctx||'',x.k||'',(x.q||[]).join(' '),(x.txt||'').replace(/<[^>]+>/g,' ')].join(' '));
+/* Dans une catégorie : cartes rédigées d'abord, les plus demandées en tête ; cartes en cours de rédaction en fin, grisées */
+const byLevel=k=>CARDS.filter(x=>x.c===k).sort((a,b)=>dim(a)-dim(b)||(a.red||0)-(b.red||0)||(a.wip||0)-(b.wip||0)||(NQ[b.id]||0)-(NQ[a.id]||0));
+let mode='rings',opener=null;
+try{const e=EXAMPLES[Math.floor(Math.random()*EXAMPLES.length)];$('q').placeholder=e;}catch(e){}
+
+/* Vue « Qui peut agir » */
+const rv=$('rings'),rd=$('radar'),tip=$('tip');
+/* Façon radar : à gauche, six cercles dessinés par les points eux-mêmes (Individu au centre), en nuage dans chaque bande ; la liste des noms courts reste construite mais n'est pas affichée (choix d'Adrien, 30 octobre) ; chaque point garde son titre au survol. Ni fond ni trait. */
+/* Taille du point selon l'effet indiqué au verso ; une carte rouge ou en cours prend la taille moyenne */
+const FXSIZE={fort:3,moyen:2,faible:1,indirect:1};
+function sz(x){return x.red||!x.fx?2:FXSIZE[x.fx];}
+/* Taille du point selon le cercle : plus le cercle est large, plus une décision touche de monde (choix d'Adrien, 29 octobre) */
+const DSZ={ind:10,pro:13,str:16,pre:21,eia:26,fil:32};
+const lvls=Object.fromEntries(LEVELS.map(l=>{const d=document.createElement('div');d.className='lvl';d.style.setProperty('--c',cvar(l.k));d.textContent=l.n;rd.appendChild(d);return [l.k,d];}));
+const dots={},items={},heads={};
+function bind(el,x){el.addEventListener('click',()=>openCard(x.id,el));
+  el.addEventListener('pointerenter',()=>hover(x.id));el.addEventListener('pointerleave',()=>hover(null));
+  el.addEventListener('focus',()=>hover(x.id));el.addEventListener('blur',()=>hover(null));}
+LEVELS.forEach(l=>{
+  const list=byLevel(l.k),g=document.createElement('div');g.className='ng'+(list.length<=16?' keep':'');$('names').appendChild(g);const h=document.createElement('h3');h.textContent=l.n;g.appendChild(h);heads[l.k]=h;
+  h.addEventListener('pointerenter',()=>hoverLevel(l.k));h.addEventListener('pointerleave',()=>hover(null));
+  list.forEach(x=>{const c=cvar(x.red?'red':x.c),lab=`${l.n}, ${x.red?'fausse bonne pratique : ':''}${x.t}`;
+    const b=document.createElement('button');b.type='button';b.className='dot'+(dim(x)?' wip':'');b.style.setProperty('--c',c);b.style.setProperty('--d',DSZ[x.c]+'px');
+    b.setAttribute('aria-label',lab);bind(b,x);rd.appendChild(b);dots[x.id]=b;
+    const n=document.createElement('button');n.type='button';n.className='nm'+(x.red?' red':'');n.style.setProperty('--c',c);n.innerHTML=`<i></i>${x.t}`;
+    n.setAttribute('aria-label',lab);bind(n,x);g.appendChild(n);items[x.id]=n;});
+});
+/* Placement : chaque niveau a une ou deux pistes circulaires ; ses points s'y répartissent à intervalle égal, en laissant en haut la place du nom du niveau. Une seule piste par niveau, l'écart entre niveaux est large : les anneaux se lisent sans être tracés. */
+/* limites des six bandes, en fraction du rayon, du centre vers l'extérieur */
+/* nombre pseudo-aléatoire stable entre 0 et 1, tiré de l'identifiant de la carte */
+function rng(id){let a=Math.floor(jit(id,3)*4294967296);return ()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};}
+function jit(id,k){let h=2166136261^k;for(const c of id){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}h^=h>>>13;h=Math.imul(h,1274126177);return ((h^(h>>>16))>>>0)/4294967296;}
+/* Angle du nom de Projet et de Structure dans leur bande (en degrés, 0 = à droite, -90 = en haut) */
+const INNER=['ind','pro','str'],OUTER=['fil','eia','pre'],LABEL_A={pro:-140,str:-40};
+/* Taille d'un point : celle de son cercle, avec une petite variation propre à chaque carte (de -12 % à +12 %) */
+const dsz=x=>DSZ[x.c]*(.88+.24*jit(x.id,5));
+function layoutRings(){
+  const W=rd.clientWidth,H=rd.clientHeight;if(!W||!H)return;
+  const cx=W/2,cy=H/2,GOLD=Math.PI*(3-Math.sqrt(5)),S=4,GAP=7;
+  /* Individu, Projet et Structure : disposition en tournesol, chaque point prend la place suivante sur une spirale d'angle d'or,
+     à surface égale. Densité égale partout, sans alignement visible. Un mince anneau vide sépare deux cercles.
+     Autour, un anneau complet partagé en trois arcs : Filière en haut, Entreprises de l'IA à droite, Prestataires et clients à gauche.
+     Chaque arc prend une part du tour proportionnelle à la place de ses points : l'ensemble garde la forme d'un cercle. */
+  const Z=Object.fromEntries(LEVELS.map(l=>[l.k,{list:byLevel(l.k),nm:lvls[l.k],w:lvls[l.k].offsetWidth,h:lvls[l.k].offsetHeight}]));
+  const hit=(x,y,d,labels)=>labels.some(b=>x+d/2>b.l&&x-d/2<b.r&&y+d/2>b.t&&y-d/2<b.b);
+  const box=(z,x,y)=>({l:x-z.w/2-5,r:x+z.w/2+5,t:y-z.h/2-4,b:y+z.h/2+4,x0:x-z.w/2,y0:y-z.h/2});
+  function run(k,labels){const out=[],zones={},ext=[];let A=0,i=0;
+    INNER.forEach((key,zi)=>{const z=Z[key];let r0=Math.sqrt(A/Math.PI);
+      if(zi){r0+=GAP*k;A=Math.PI*r0*r0;}
+      let n=0,guard=0;
+      while(n<z.list.length&&guard++<5000){const x=z.list[n],d=dsz(x)*k,cell=(d+S*k)*(d+S*k);A+=cell;
+        const r=Math.sqrt(A/Math.PI)-d/2,a=i++*GOLD,px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r;
+        if(hit(px,py,d,labels))continue;out.push({id:x.id,x:px,y:py,d});n++;}
+      zones[key]={r0,r1:Math.sqrt(A/Math.PI)};});
+    /* anneau extérieur */
+    const outer=OUTER.flatMap(key=>Z[key].list.map(x=>({key,x,d:dsz(x)*k})));
+    const dmax=Math.max(...outer.map(o=>o.d)),need=outer.reduce((s,o)=>s+o.d+S*k*2,0);
+    const ro=Math.max(zones.str.r1+GAP*k*1.5+dmax/2,need/(2*Math.PI));
+    /* l'arc de Filière est centré en haut, les deux autres suivent dans le sens des aiguilles d'une montre */
+    const share=OUTER.map(key=>outer.filter(o=>o.key===key).reduce((s,o)=>s+o.d+S*k*2,0)/need*2*Math.PI);
+    let a0=-Math.PI/2-share[0]/2;
+    OUTER.forEach((key,si)=>{const mine=outer.filter(o=>o.key===key),tot=mine.reduce((s,o)=>s+o.d+S*k*2,0);let acc=0;
+      mine.forEach(o=>{const w=(o.d+S*k*2)/tot*share[si],a=a0+acc+w/2+(jit(o.x.id,1)-.5)*w*.3,r=ro+(jit(o.x.id,2)-.5)*dmax*.35;acc+=w;
+        out.push({id:o.x.id,x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r,d:o.d});});
+      /* nom posé au-dessus de l'arc s'il est en haut, en dessous sinon : le dessin reste aussi étroit que possible */
+      const c=a0+share[si]/2,z=Z[key],pts=out.slice(-mine.length),up=Math.sin(c)<0,
+        lx=pts.reduce((s,p)=>s+p.x,0)/pts.length,ly=up?Math.min(...pts.map(p=>p.y-p.d/2))-z.h/2-6:Math.max(...pts.map(p=>p.y+p.d/2))+z.h/2+6;
+      zones[key]={lx,ly};ext.push({x:lx,y:ly,w:z.w,h:z.h});
+      a0+=share[si];});
+    const bb={l:1e9,r:-1e9,t:1e9,b:-1e9};
+    [...out,...ext].forEach(p=>{const hw=(p.w||p.d)/2,hh=(p.h||p.d)/2;bb.l=Math.min(bb.l,p.x-hw);bb.r=Math.max(bb.r,p.x+hw);bb.t=Math.min(bb.t,p.y-hh);bb.b=Math.max(bb.b,p.y+hh);});
+    return {out,zones,bb};}
+  /* échelle : la plus grande qui tient dans le cadre, noms compris */
+  let k=1,res,labels=[];
+  for(let pass=0;pass<4;pass++){
+    let lo=.3,hi=5;for(let s=0;s<22;s++){const m=(lo+hi)/2,b=run(m,labels).bb;(b.r-b.l<=W-8&&b.b-b.t<=H-8?lo=m:hi=m);}k=lo;res=run(k,labels);
+    labels=[box(Z.ind,cx,cy)];
+    ['pro','str'].forEach(key=>{const zz=res.zones[key],rm=(zz.r0+zz.r1)/2,a=LABEL_A[key]*Math.PI/180;labels.push(box(Z[key],cx+Math.cos(a)*rm,cy+Math.sin(a)*rm));});
+  }
+  res=run(k,labels);
+  /* recentrage de l'ensemble dans le cadre */
+  const ox=(W-(res.bb.l+res.bb.r))/2,oy=(H-(res.bb.t+res.bb.b))/2;
+  res.out.forEach(p=>{p.x+=ox;p.y+=oy;});labels.forEach(b=>{b.x0+=ox;b.y0+=oy;});OUTER.forEach(key=>{res.zones[key].lx+=ox;res.zones[key].ly+=oy;});
+  const all=[...labels,...OUTER.map(key=>box(Z[key],res.zones[key].lx,res.zones[key].ly))];
+  [...INNER,...OUTER].forEach((key,i)=>{Z[key].nm.style.transform=`translate(${all[i].x0}px,${all[i].y0}px)`;});
+  res.out.forEach(p=>{const el=dots[p.id];el.style.setProperty('--d',p.d.toFixed(1)+'px');el.style.transform=`translate(${(p.x-p.d/2).toFixed(1)}px,${(p.y-p.d/2).toFixed(1)}px)`;});
+  rd.dataset.k=k.toFixed(2);
+}
+function show(on,ids,lvl){rv.classList.toggle('focus',on);
+  Object.entries(dots).forEach(([k,d])=>{const s=on&&ids.has(k);d.classList.toggle('same',s);items[k].classList.toggle('same',s);d.classList.toggle('on',on&&ids.size===1&&s);items[k].classList.toggle('on',on&&ids.size===1&&s);});
+  LEVELS.forEach(l=>{lvls[l.k].classList.toggle('same',l.k===lvl);heads[l.k].classList.toggle('same',l.k===lvl);});}
+function hoverLevel(k){tip.classList.remove('on');show(true,new Set(byLevel(k).map(x=>x.id)),k);}
+function hover(id){
+  if(!id){show(false,new Set(),null);tip.classList.remove('on');return;}
+  const x=BY[id],b=dots[id];show(true,new Set([id]),x.c);
+  tip.innerHTML=`<b><i style="background:${cvar(x.c)}"></i>${LV[x.c].n}</b>${x.red?'<span class="rk">Fausse bonne pratique</span>':''}${x.t}${x.avec?`<span class="av">${LV[x.avec].avec}</span>`:''}`;
+  tip.classList.add('on');
+  const bx=b.getBoundingClientRect(),rx=rd.getBoundingClientRect(),tw=tip.offsetWidth,th=tip.offsetHeight;
+  let left=bx.left-rx.left+bx.width/2-tw/2,top=bx.top-rx.top-th-12;
+  if(top<0)top=bx.bottom-rx.top+12;
+  left=Math.max(0,Math.min(left,rx.width-tw));
+  tip.style.left=left+'px';tip.style.top=top+'px';
+}
+/* Vue Cartes */
+function tile(x){
+  return `<button type="button" class="tile${x.red?' red':''}${dim(x)?' wip':''}" data-id="${x.id}" style="--c:${cvar(x.c)};--t:${tvar(x.red?'red':x.c)}">
+    ${x.red?'<span class="k"><i></i>Fausse bonne pratique</span>':''}<h3>${x.t}</h3>${x.avec?`<span class="s">${LV[x.avec].avec}</span>`:''}</button>`;
+}
+function buildList(){
+  $('list').innerHTML=LEVELS.map(l=>{
+    const items=byLevel(l.k),n=items.length;
+    return `<section class="grp" data-k="${l.k}" style="--t:${tvar(l.k)};--c:${cvar(l.k)}" aria-labelledby="g-${l.k}">
+      <div class="grp-h"><h2 id="g-${l.k}"><i style="background:${cvar(l.k)}"></i>${l.n}</h2></div>
+      <div class="tiles">${items.map(tile).join('')}</div>
+    </section>`;}).join('');
+  $('list').querySelectorAll('.tile').forEach(t=>t.addEventListener('click',()=>openCard(t.dataset.id,t)));
+  renderRecent();
+}
+/* Dernières cartes ouvertes sur cet appareil, en tête de la vue Cartes (4 au plus) */
+const RK='recos-ia-recentes';
+function getRecent(){try{return (JSON.parse(localStorage.getItem(RK))||[]).filter(id=>BY[id]);}catch(e){return [];}}
+function pushRecent(id){try{const r=[id,...getRecent().filter(x=>x!==id)].slice(0,4);localStorage.setItem(RK,JSON.stringify(r));}catch(e){}}
+function renderRecent(){
+  const old=$('list').querySelector('.grp-r');if(old)old.remove();
+  const r=getRecent();if(!r.length)return;
+  const s=document.createElement('section');s.className='grp grp-r';s.setAttribute('aria-labelledby','g-recent');
+  s.innerHTML=`<div class="grp-h"><h2 id="g-recent">Dernières ouvertes</h2></div><div class="tiles">${r.map(id=>{const x=BY[id];
+    return `<button type="button" class="tile rt" data-r="${x.id}" style="--c:${cvar(x.c)}"><span class="k"><i></i>${LV[x.c].n}</span><h3>${x.t}</h3></button>`;}).join('')}</div>`;
+  s.querySelectorAll('.rt').forEach(t=>t.addEventListener('click',()=>openCard(t.dataset.r,t)));
+  $('list').prepend(s);
+}
+/* Plus de repli : toutes les cartes sont affichées (choix d'Adrien, 30 octobre) */
+let userFolded=false;
+function autoFold(){return;
+  if(userFolded||$('list').hidden||$('q').value.trim())return;
+  const groups=[...document.querySelectorAll('.grp')];
+  const max=Math.max(...LEVELS.map(l=>byLevel(l.k).length));
+  for(let n=max;n>=SHOWN;n--){
+    groups.forEach(g=>{const all=g.querySelectorAll('.tile'),b=g.querySelector('.more');all.forEach((t,i)=>t.hidden=i>=n);
+      if(b){b.hidden=all.length<=n;b.setAttribute('aria-expanded','false');b.textContent='Voir toutes les cartes';}});
+    if($('list').getBoundingClientRect().bottom<=innerHeight)return;
+  }
+}
+function fold(g,open,n=SHOWN){g.querySelectorAll('.tile').forEach((t,i)=>t.hidden=!open&&i>=n);}
+
+function setMode(m){
+  mode=m;document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===m)));
+  $('rings').hidden=m!=='rings';$('list').hidden=m!=='list';if(m==='rings')layoutRings();else autoFold();search();
+}
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.m)));
+
+/* Recherche : titres, textes et questions des cartes */
+function search(){
+  const v=norm($('q').value.trim());
+  rv.classList.toggle('searching',!!v);$('list').classList.toggle('searching-l',!!v);
+  if(!v){$('cap').textContent='';document.querySelectorAll('.grp').forEach(g=>{g.hidden=false;g.querySelectorAll('.tile').forEach(t=>t.hidden=false);});return;}
+  let n=0;const ls=new Set();
+  CARDS.forEach(x=>{const hit=plain(x).includes(v);dots[x.id].classList.toggle('hit',hit);items[x.id].classList.toggle('hit',hit);
+    const t=$('list').querySelector(`.tile[data-id="${x.id}"]`);if(t){t.classList.toggle('hit',hit);t.hidden=!hit;}
+    if(hit){n++;ls.add(x.c);}});
+  document.querySelectorAll('.grp').forEach(g=>g.hidden=!g.querySelector('.tile.hit'));
+  $('cap').textContent=n?`${n} carte${n>1?'s':''}, dans ${ls.size} niveau${ls.size>1?'x':''}`:'Aucune carte pour ce mot. Essayer : vidéo, devis, données, bilan.';
+}
+$('q').addEventListener('input',search);
+
+/* Carte ouverte */
+const ARROW=`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8a6 6 0 0 1 11-2.5"/><path d="M15.5 2.5v3.2h-3.2"/><path d="M16 12a6 6 0 0 1-11 2.5"/><path d="M4.5 17.5v-3.2h3.2"/></svg>`;
+const PREV=`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.5 4.5L7 10l5.5 5.5"/></svg>`;
+const NEXT=`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 4.5L13 10l-5.5 5.5"/></svg>`;
+const CLOSE=`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg>`;
+const chips=(a,cls)=>a.map(([k,n])=>`<span class="chip ${cls}" style="--cc:${cvar(k)};--tc:${tvar(k)};--fc:${LV[k].fc}">${n}</span>`).join('');
+function fig(f){
+  let g='';
+  if(f.type==='bars'){
+    g=`<div class="bars">${f.rows.map(([lab,lo,hi,txt])=>{const l=lo/f.max*100,w=Math.max((hi-lo)/f.max*100,.6),end=l+w>78;
+      return `<span>${lab}</span><div class="track"><span class="barf" style="left:${l}%;width:${w}%"></span><span class="val${end?' in':''}" style="${end?`right:calc(${(100-l-w).toFixed(2)}% + 8px)`:`left:calc(${l+w}% + 6px)`}">${txt}</span></div>`;}).join('')}</div>`;
+  }else if(f.type==='big'){
+    g=`<div class="big${f.items.length===1?' one':''}">${f.items.map(([n,lab])=>`<div><b>${n}</b><span class="sm">${lab}</span></div>`).join('')}</div>`;
+  }
+  else if(f.type==='list'){
+    g=`<ul class="eq">${f.items.map(v=>`<li>${v}</li>`).join('')}</ul>`;
+  }
+  else if(f.type==='pairs'){
+    g=`<div class="pairs">${f.head?`<span class="ph">${f.head[0]}</span><span class="ph">${f.head[1]}</span>`:''}${f.rows.map(([a,b])=>`<span>${a}</span><span>${b}</span>`).join('')}</div>`;
+  }else if(f.type==='checks'){
+    g=`<ol class="checks">${f.items.map(v=>`<li>${v}</li>`).join('')}</ol>`;
+  }else if(f.type==='links'){
+    g=`<div class="links">${f.items.map(([t,u,d])=>`<a href="${u}" target="_blank" rel="noopener"><b>${t}</b>${d?`<span class="sm">${d}</span>`:''}</a>`).join('')}</div>`;
+  }
+  return `<div class="fig">${g}${f.p?`<p class="sm">${f.p}</p>`:''}</div>`;
+}
+/* Sources : texte « A (2025) ; B (2026) » ou liste [[libellé, lien?], …], affichées repliées */
+function srcHTML(s){
+  if(!s)return '';
+  const items=Array.isArray(s)?s:s.split(/\s*;\s*/).filter(Boolean).map(t=>[t.replace(/\.$/,'')]);
+  return `<details class="srcs"><summary>Sources (${items.length})</summary><ul>${items.map(([t,u])=>`<li>${u?`<a href="${u}" target="_blank" rel="noopener">${t}</a>`:t}</li>`).join('')}</ul></details>`;
+}
+function cardHTML(x){
+  const L=LV[x.c],fc=x.red?'#fff':L.fc,cb=x.red?'var(--red-ink)':({ind:'var(--c-ind)',pro:'var(--c-pro)',str:'var(--c-pro)'}[x.c]||'var(--ink)');
+  const lv=byLevel(x.c),pos=lv.indexOf(x),prev=lv[(pos-1+lv.length)%lv.length],next=lv[(pos+1)%lv.length];
+  const nav=lv.length>1?`<button type="button" data-go="${prev.id}" aria-label="Carte précédente du niveau ${L.n}">${PREV}</button><button type="button" data-go="${next.id}" aria-label="Carte suivante du niveau ${L.n}">${NEXT}</button>`:'';
+  const icons=side=>`<div class="icons">${nav}<button type="button" data-flip aria-label="${side?'Revenir au recto':'Retourner la carte'}">${ARROW}</button><button type="button" data-close aria-label="Fermer la carte">${CLOSE}</button></div>`;
+  const goList=x.go?`<div class="txt"><p class="sm">À la place</p><div class="go">${x.go.map(o=>`<button type="button" data-go="${o}"><i style="background:${cvar(BY[o].c)}"></i>${BY[o].t}</button>`).join('')}</div></div>`:'';
+  const seeList=!x.red&&x.voir?`<div class="txt"><p class="sm">Voir aussi</p><div class="go">${x.voir.filter(o=>BY[o]).slice(0,2).map(o=>`<button type="button" data-go="${o}"><i style="background:${cvar(BY[o].c)}"></i>${BY[o].t}</button>`).join('')}</div></div>`:'';
+  const front=`<div class="face front">${icons(0)}
+    <div class="hd">${x.red?'<p class="kind">Fausse bonne pratique</p>':''}<h2 id="card-title">${x.t}</h2>${x.sub?`<p>${x.sub}</p>`:''}${x.avec?`<p class="avec"><i style="background:${cvar(x.avec)}"></i>${LV[x.avec].avec}</p>`:''}</div>
+    ${x.txt?`<div class="txt">${x.txt}</div>`:'<p class="sm">Carte en cours de rédaction.</p>'}
+    ${x.fig?[].concat(x.fig).map(fig).join(''):''}${x.txt2?`<div class="txt">${x.txt2}</div>`:''}${x.fig2?[].concat(x.fig2).map(fig).join(''):''}${x.tip?`<div class="tip"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 15.5h5M8.5 18h3"/><path d="M10 2.5a5 5 0 0 0-3 9c.6.5 1 1.2 1 2v.5h4v-.5c0-.8.4-1.5 1-2a5 5 0 0 0-3-9z"/></svg><p>${x.tip}</p></div>`:''}
+    ${x.persp?`<p>${x.persp}</p>`:''}
+    ${x.wip?'':x.red?goList:`${x.ctx?`<div class="box"><p>${x.ctx}</p></div>`:''}
+    <div class="who"><span class="sm">Qui s'en charge</span><div class="chips">${chips(x.who||[],'a')}</div>${x.req&&x.req.length?`
+      <span class="sm">Qui peut l'exiger</span><div class="chips">${chips(x.req,'d')}</div>`:''}</div>`}
+    ${seeList}
+    ${srcHTML(x.src)}
+  </div>`;
+  const tags=[`<span class="tag sc${x.red?' red':''}">${x.red?'Fausse bonne pratique':L.n}</span>`];
+  if(x.red)tags.push(`<span class="tag">${L.n}</span>`);
+  if(x.avec)tags.push(`<span class="tag">${LV[x.avec].avec}</span>`);
+  [x.sit,x.act,x.fx&&FX[x.fx]].forEach(v=>{if(v)tags.push(`<span class="tag">${v}</span>`);});
+  const back=`<div class="face back" aria-hidden="true">${icons(1)}
+    <h2>${x.t}</h2>
+    <div class="qs">${(x.q||[]).map(v=>`<p>« ${v} »</p>`).join('')}</div>
+    <div class="tags">${tags.join('')}</div>
+  </div>`;
+  return `<article class="card" style="--c:${cvar(x.red?'red':x.c)};--t:${tvar(x.red?'red':x.c)};--fc:${fc};--cb:${cb}"><div class="inner">${front}${back}</div></article>`;
+}
+function openCard(id,from){
+  if(!BY[id])return;
+  pushRecent(id);if(!$('list').hidden)renderRecent();
+  if(from)opener=from;
+  if(location.hash!=='#'+id){try{history.replaceState(null,'','#'+id);}catch(e){location.hash=id;}}
+  const m=$('modal');m.innerHTML=cardHTML(BY[id]);$('ov').hidden=false;document.body.style.overflow='hidden';hover(null);
+  const card=m.querySelector('.card');
+  card.querySelectorAll('[data-flip]').forEach(b=>b.addEventListener('click',()=>{
+    const on=card.classList.toggle('flipped');
+    card.querySelector('.front').setAttribute('aria-hidden',String(on));card.querySelector('.back').setAttribute('aria-hidden',String(!on));
+    card.querySelector(on?'.back [data-flip]':'.front [data-flip]').focus();}));
+  card.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeCard));
+  card.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>openCard(b.dataset.go,b)));
+  m.scrollTop=0;const keep=from&&from.closest&&from.closest('.icons')?from.getAttribute('aria-label'):null;
+  const f=keep?[...card.querySelectorAll('.front .icons button')].find(b=>b.getAttribute('aria-label')===keep):null;(f||card.querySelector('.front [data-close]')).focus();
+}
+function closeCard(){try{history.replaceState(null,'',location.pathname+location.search);}catch(e){location.hash='';}
+  $('ov').hidden=true;$('modal').innerHTML='';document.body.style.overflow='';if(opener&&document.contains(opener))opener.focus();}
+$('ov').addEventListener('click',e=>{if(e.target===$('ov'))closeCard();});
+document.addEventListener('keydown',e=>{
+  if($('ov').hidden)return;
+  if(e.key==='Escape')closeCard();
+  if((e.key==='ArrowRight'||e.key==='ArrowLeft')&&!e.target.closest('input')){const b=$('modal').querySelector(`.front [aria-label^="Carte ${e.key==='ArrowRight'?'suivante':'précédente'}"]`);if(b)b.click();}
+  if(e.key==='Tab'){const f=[...$('modal').querySelectorAll('button')].filter(b=>!b.closest('[aria-hidden="true"]'));if(!f.length)return;
+    const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}}
+});
+
+/* Hauteur de l'en-tête, pour que la vue « Qui peut agir » occupe le reste de l'écran */
+function sizeView(){document.documentElement.style.setProperty('--navh',$('top').offsetHeight+'px');
+  /* la vue occupe exactement la hauteur restante de l'écran */
+  if(!rv.hidden){const t=rv.getBoundingClientRect().top+scrollY;document.documentElement.style.setProperty('--rvh',Math.max(440,innerHeight-t-30)+'px');}
+  layoutRings();}
+let lastH=innerHeight;addEventListener('resize',()=>{if(Math.abs(innerHeight-lastH)>40){lastH=innerHeight;autoFold();}});
+buildList();
+/* Sur un écran étroit, l'éventail devient trop petit : la page s'ouvre sur la vue Cartes */
+/* La page s'ouvre sur la vue Cartes (choix d'Adrien, 30 octobre) */
+setMode('list');
+new ResizeObserver(sizeView).observe(document.body);
+sizeView();
+/* Adresse propre par carte : #identifiant ouvre la carte */
+const fromHash=()=>{const id=decodeURIComponent(location.hash.slice(1));if(BY[id])openCard(id);else if(!$('ov').hidden&&!location.hash)closeCard();};
+window.addEventListener('hashchange',fromHash);fromHash();
+
+/* Mode travail : WORK liste les cartes en cours ; vide, la page s'affiche normalement */
+const WORK=[];
+if(WORK.length){
+  document.body.classList.add('work');
+  const w=document.createElement('main');w.className='wk';w.setAttribute('aria-label','Cartes en cours');
+  w.innerHTML=WORK.filter(id=>ALLCARDS.some(c=>c.id===id)).map(id=>{const x=ALLCARDS.find(c=>c.id===id);
+    return `<section class="wk-card">${cardHTML(x)}</section>`;}).join('');
+  document.body.prepend(w);w.querySelectorAll('.back').forEach(b=>b.removeAttribute('aria-hidden'));
+}
+</script>
+</body>
+</html>

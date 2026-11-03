@@ -91,7 +91,8 @@ nav{max-width:1900px;margin:0 auto;display:flex;align-items:center;gap:clamp(8px
 .tip .av{display:block;color:var(--ink-2);font-size:12.5px;margin-top:4px}
 
 /* Vue Cartes */
-.list-view{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 16px;align-items:start}
+.list-view{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+.list-view .col{display:grid;gap:16px;align-content:start;min-width:0}
 @media (max-width:1000px){.list-view{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:640px){.list-view{grid-template-columns:1fr}}
 .list-view[hidden]{display:none}
@@ -115,6 +116,9 @@ nav{max-width:1900px;margin:0 auto;display:flex;align-items:center;gap:clamp(8px
 .tile.wip h3{font-weight:500;font-size:13.5px}
 .grp-r{background:var(--paper)}
 .grp-r .tiles{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.grp-r .grp-h{justify-content:space-between}
+.prt{border:0;background:var(--olive);color:#fff;border-radius:999px;min-height:36px;padding:0 16px;font-size:13.5px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.prt svg{width:16px;height:16px}
 .list-view .grp-r{grid-column:1/-1}
 .dot.wip{opacity:.35}
 .more{justify-self:start;border:0;background:transparent;border-radius:999px;min-height:36px;padding:0 4px;font-size:13.5px;color:var(--olive);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
@@ -128,18 +132,30 @@ nav{max-width:1900px;margin:0 auto;display:flex;align-items:center;gap:clamp(8px
 .inner{display:grid;transition:transform .5s cubic-bezier(.2,.7,.2,1);transform-style:preserve-3d}
 .card.flipped .inner{transform:rotateY(180deg)}
 .face{grid-area:1/1;position:relative;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--white);border:2px solid var(--c);border-radius:22px;padding:26px 26px 18px;display:grid;gap:18px;align-content:start;min-width:0}
-.back{transform:rotateY(180deg);grid-template-rows:auto 1fr auto;gap:24px;text-align:center;justify-items:center;padding-block:52px 26px}
+.back{transform:rotateY(180deg)}
+.face.cl{display:none}
+.face{align-self:start}
+.qf{min-height:380px;grid-template-rows:auto 1fr auto auto;gap:24px;text-align:center;justify-items:center;padding-block:60px 26px}
+.qf.blank{grid-template-rows:1fr;align-content:center;min-height:300px}
 .icons{position:absolute;top:8px;right:8px;display:flex;gap:2px}
-.icons button{width:44px;height:44px;border:0;background:transparent;border-radius:50%;color:var(--ink-3);cursor:pointer;display:grid;place-items:center}
+.icons button{width:40px;height:40px;border:0;background:transparent;border-radius:50%;color:var(--ink-3);cursor:pointer;display:grid;place-items:center}
 .icons button:hover{color:var(--ink)}
 .icons svg{width:18px;height:18px}
-.hd{display:grid;gap:6px;padding-right:170px}
+.hd{display:grid;gap:6px;padding-right:214px}
+.icons .fl{background:var(--c);color:var(--fc)}
+.icons .fl:hover{color:var(--fc)}
+.icons .fl svg,.cta svg{transition:transform .35s}
+.icons .fl:hover svg,.cta:hover svg{transform:rotate(180deg)}
+.icons .fav[aria-pressed="true"]{color:var(--red-ink)}
+.icons .fav[aria-pressed="true"] svg path{fill:currentColor}
+.cta{border:0;background:var(--c);color:var(--fc);border-radius:999px;min-height:46px;padding:0 22px;font-size:15px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:10px}
+.cta svg{width:20px;height:20px}
 @media (max-width:520px){.hd{padding-right:0;padding-top:34px}}
 .kind{font-size:13px;color:var(--red-ink);font-weight:500;margin:0}
 .avec{display:flex;align-items:center;gap:7px;font-size:13.5px;color:var(--ink-2)}
 .avec i{width:9px;height:9px;border-radius:50%;flex:none}
 .face h2{font-family:var(--head);font-size:22px;line-height:1.22;margin:0;font-weight:700;text-wrap:balance}
-.back h2{font-size:26px;max-width:20ch}
+.qf h2{font-size:26px;max-width:20ch}
 .face p{margin:0;max-width:62ch}
 .txt{display:grid;gap:9px}
 .txt ul{margin:0;padding:0;list-style:none;display:grid;gap:5px}
@@ -248,10 +264,27 @@ body{margin:0}
 .wk-card .inner{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;transform:none!important}
 .wk-card .face{grid-area:auto;backface-visibility:visible;-webkit-backface-visibility:visible}
 .wk-card .back{transform:none}
+.wk-card .cta{display:none}
 .wk-card .icons{display:none}
+.wk-card .face.cl{display:grid}
 .wk-card .hd{padding-right:0}
 .wk-meta{font-size:13px;color:var(--ink-2);display:grid;gap:2px}
 @media (max-width:900px){.wk-card .inner{grid-template-columns:1fr}}
+#print{display:none}
+@media print{
+  body>*:not(#print){display:none!important}
+  #print{display:block}
+  #print .card{break-after:page;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #print .card:last-child{break-after:auto}
+  #print .inner{display:grid;gap:14px;transform:none!important}
+  #print .face{grid-area:auto;backface-visibility:visible;-webkit-backface-visibility:visible}
+  #print .qf{break-inside:avoid}
+  #print .back{transform:none}
+  #print .face.cl{display:grid}
+  #print .qf{padding-block:26px;min-height:0}
+  #print .icons,#print .cta{display:none}
+  #print .hd{padding-right:0}
+}
 </style>
 </head>
 <body>
@@ -576,12 +609,16 @@ const SHOW_RED=false;
 // Cartes revues avec le skill cartes-recos-ia ; les autres sont grisées et rangées en fin de catégorie.
 const REVUES=['besoin','outil','preuve','comparer','donnees','confidentiel','decide','bilan','essais','chiffre','versions'];
 const dim=x=>x.wip||!REVUES.includes(x.id)?1:0;
+/* Mode travail : WORK liste les cartes en cours ; vide, la page s'affiche normalement */
+const WORK=[];
+/* Carte pas encore rédigée et vérifiée : seul son titre s'affiche (choix d'Adrien, 3 novembre) */
+const blank=x=>dim(x)&&!WORK.includes(x.id);
 const CARDS=ALLCARDS.filter(x=>SHOW_RED||!x.red);
 
 const BY=Object.fromEntries(CARDS.map(x=>[x.id,x]));
 const $=id=>document.getElementById(id);
 const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-const plain=x=>norm([x.s||'',x.t,x.ctx||'',x.k||'',(x.q||[]).join(' '),(x.txt||'').replace(/<[^>]+>/g,' ')].join(' '));
+const plain=x=>blank(x)?norm(x.t):norm([x.s||'',x.t,x.ctx||'',x.k||'',(x.q||[]).join(' '),(x.txt||'').replace(/<[^>]+>/g,' ')].join(' '));
 /* Dans une catégorie : cartes rédigées d'abord, les plus demandées en tête ; cartes en cours de rédaction en fin, grisées */
 const byLevel=k=>CARDS.filter(x=>x.c===k).sort((a,b)=>dim(a)-dim(b)||(a.red||0)-(b.red||0)||(a.wip||0)-(b.wip||0)||(NQ[b.id]||0)-(NQ[a.id]||0));
 let mode='rings',opener=null;
@@ -703,20 +740,39 @@ function buildList(){
       <div class="tiles">${items.map(tile).join('')}</div>
     </section>`;}).join('');
   $('list').querySelectorAll('.tile').forEach(t=>t.addEventListener('click',()=>openCard(t.dataset.id,t)));
-  renderRecent();
+  arrange();renderFav();
 }
-/* Dernières cartes ouvertes sur cet appareil, en tête de la vue Cartes (4 au plus) */
-const RK='recos-ia-recentes';
-function getRecent(){try{return (JSON.parse(localStorage.getItem(RK))||[]).filter(id=>BY[id]);}catch(e){return [];}}
-function pushRecent(id){try{const r=[id,...getRecent().filter(x=>x!==id)].slice(0,4);localStorage.setItem(RK,JSON.stringify(r));}catch(e){}}
-function renderRecent(){
+/* Catégories réparties en colonnes indépendantes, sans espace vide entre les cadres (3 novembre) */
+const MQ=[matchMedia('(max-width:640px)'),matchMedia('(max-width:1000px)')];
+function arrange(){
+  const n=MQ[0].matches?1:MQ[1].matches?2:3,L=$('list'),gs=[...L.querySelectorAll('.grp:not(.grp-r)')];
+  if(L.querySelectorAll(':scope>.col').length===n)return;
+  L.querySelectorAll(':scope>.col').forEach(c=>c.remove());
+  const cols=Array.from({length:n},()=>{const c=document.createElement('div');c.className='col';L.append(c);return c;});
+  gs.forEach((g,i)=>cols[i%n].append(g));
+}
+MQ.forEach(m=>m.addEventListener('change',arrange));
+/* Mes cartes : cartes mises en favori sur cet appareil, en tête de la vue Cartes, à imprimer (3 novembre) */
+const FK='recos-ia-favoris';
+const PRINT=`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 7.5v-5h9v5"/><rect x="2.5" y="7.5" width="15" height="7" rx="1.5"/><path d="M5.5 12.5h9v5h-9z"/></svg>`;
+function getFav(){try{return (JSON.parse(localStorage.getItem(FK))||[]).filter(id=>BY[id]&&!blank(BY[id]));}catch(e){return [];}}
+function setFav(id,on){try{const r=getFav().filter(x=>x!==id);if(on)r.push(id);localStorage.setItem(FK,JSON.stringify(r));}catch(e){}renderFav();}
+function renderFav(){
   const old=$('list').querySelector('.grp-r');if(old)old.remove();
-  const r=getRecent();if(!r.length)return;
-  const s=document.createElement('section');s.className='grp grp-r';s.setAttribute('aria-labelledby','g-recent');
-  s.innerHTML=`<div class="grp-h"><h2 id="g-recent">Dernières ouvertes</h2></div><div class="tiles">${r.map(id=>{const x=BY[id];
+  const r=getFav();if(!r.length)return;
+  const s=document.createElement('section');s.className='grp grp-r';s.setAttribute('aria-labelledby','g-fav');
+  s.innerHTML=`<div class="grp-h"><h2 id="g-fav">Mes cartes</h2><button type="button" class="prt">${PRINT}Imprimer</button></div><div class="tiles">${r.map(id=>{const x=BY[id];
     return `<button type="button" class="tile rt" data-r="${x.id}" style="--c:${cvar(x.c)}"><span class="k"><i></i>${LV[x.c].n}</span><h3>${x.t}</h3></button>`;}).join('')}</div>`;
   s.querySelectorAll('.rt').forEach(t=>t.addEventListener('click',()=>openCard(t.dataset.r,t)));
+  s.querySelector('.prt').addEventListener('click',printFav);
   $('list').prepend(s);
+}
+/* Impression : chaque carte sur sa page, questions puis contenu, sources dépliées */
+function printFav(){
+  let p=$('print');if(!p){p=document.createElement('div');p.id='print';document.body.append(p);}
+  p.innerHTML=getFav().map(id=>cardHTML(BY[id])).join('');
+  p.querySelectorAll('details').forEach(d=>d.open=true);p.querySelectorAll('[aria-hidden]').forEach(e=>e.removeAttribute('aria-hidden'));
+  window.print();
 }
 /* Plus de repli : toutes les cartes sont affichées (choix d'Adrien, 30 octobre) */
 let userFolded=false;
@@ -753,6 +809,7 @@ function search(){
 $('q').addEventListener('input',search);
 
 /* Carte ouverte */
+const HEART=`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M10 16.5S3 12.3 3 7.6A3.6 3.6 0 0 1 10 6a3.6 3.6 0 0 1 7 1.6c0 4.7-7 8.9-7 8.9z"/></svg>`;
 const ARROW=`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8a6 6 0 0 1 11-2.5"/><path d="M15.5 2.5v3.2h-3.2"/><path d="M16 12a6 6 0 0 1-11 2.5"/><path d="M4.5 17.5v-3.2h3.2"/></svg>`;
 const PREV=`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.5 4.5L7 10l5.5 5.5"/></svg>`;
 const NEXT=`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 4.5L13 10l-5.5 5.5"/></svg>`;
@@ -788,12 +845,14 @@ function cardHTML(x){
   const L=LV[x.c],fc=x.red?'#fff':L.fc,cb=x.red?'var(--red-ink)':({ind:'var(--c-ind)',pro:'var(--c-pro)',str:'var(--c-pro)'}[x.c]||'var(--ink)');
   const lv=byLevel(x.c),pos=lv.indexOf(x),prev=lv[(pos-1+lv.length)%lv.length],next=lv[(pos+1)%lv.length];
   const nav=lv.length>1?`<button type="button" data-go="${prev.id}" aria-label="Carte précédente du niveau ${L.n}">${PREV}</button><button type="button" data-go="${next.id}" aria-label="Carte suivante du niveau ${L.n}">${NEXT}</button>`:'';
-  const icons=side=>`<div class="icons">${nav}<button type="button" data-flip aria-label="${side?'Revenir au recto':'Retourner la carte'}">${ARROW}</button><button type="button" data-close aria-label="Fermer la carte">${CLOSE}</button></div>`;
+  const fav=getFav().includes(x.id),bl=blank(x);
+  const icons=side=>`<div class="icons">${nav}${bl?'':`<button type="button" class="fav" data-fav aria-pressed="${fav}" aria-label="${fav?'Retirer de mes cartes':'Ajouter à mes cartes'}">${HEART}</button><button type="button" class="fl" data-flip aria-label="${side?'Revenir aux questions':'Retourner la carte'}">${ARROW}</button>`}<button type="button" data-close aria-label="Fermer la carte">${CLOSE}</button></div>`;
+  if(bl)return `<article class="card" style="--c:${cvar(x.c)};--t:${tvar(x.c)};--fc:${fc};--cb:${cb}"><div class="inner"><div class="face front qf blank">${icons(0)}<h2 id="card-title">${x.t}</h2></div></div></article>`;
   const goList=x.go?`<div class="txt"><p class="sm">À la place</p><div class="go">${x.go.map(o=>`<button type="button" data-go="${o}"><i style="background:${cvar(BY[o].c)}"></i>${BY[o].t}</button>`).join('')}</div></div>`:'';
   const seeList=!x.red&&x.voir?`<div class="txt"><p class="sm">Voir aussi</p><div class="go">${x.voir.filter(o=>BY[o]).slice(0,2).map(o=>`<button type="button" data-go="${o}"><i style="background:${cvar(BY[o].c)}"></i>${BY[o].t}</button>`).join('')}</div></div>`:'';
-  const front=`<div class="face front">${icons(0)}
-    <div class="hd">${x.red?'<p class="kind">Fausse bonne pratique</p>':''}<h2 id="card-title">${x.t}</h2>${x.sub?`<p>${x.sub}</p>`:''}${x.avec?`<p class="avec"><i style="background:${cvar(x.avec)}"></i>${LV[x.avec].avec}</p>`:''}</div>
-    ${x.txt?`<div class="txt">${x.txt}</div>`:'<p class="sm">Carte en cours de rédaction.</p>'}
+  const front=`<div class="face back cl" aria-hidden="true">${icons(1)}
+    <div class="hd">${x.red?'<p class="kind">Fausse bonne pratique</p>':''}<h2>${x.t}</h2>${x.sub?`<p>${x.sub}</p>`:''}${x.avec?`<p class="avec"><i style="background:${cvar(x.avec)}"></i>${LV[x.avec].avec}</p>`:''}</div>
+    ${x.txt?`<div class="txt">${x.txt}</div>`:''}
     ${x.fig?[].concat(x.fig).map(fig).join(''):''}${x.txt2?`<div class="txt">${x.txt2}</div>`:''}${x.fig2?[].concat(x.fig2).map(fig).join(''):''}${x.tip?`<div class="tip"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 15.5h5M8.5 18h3"/><path d="M10 2.5a5 5 0 0 0-3 9c.6.5 1 1.2 1 2v.5h4v-.5c0-.8.4-1.5 1-2a5 5 0 0 0-3-9z"/></svg><p>${x.tip}</p></div>`:''}
     ${x.persp?`<p>${x.persp}</p>`:''}
     ${x.wip?'':x.red?goList:`${x.ctx?`<div class="box"><p>${x.ctx}</p></div>`:''}
@@ -806,24 +865,30 @@ function cardHTML(x){
   if(x.red)tags.push(`<span class="tag">${L.n}</span>`);
   if(x.avec)tags.push(`<span class="tag">${LV[x.avec].avec}</span>`);
   [x.sit,x.act,x.fx&&FX[x.fx]].forEach(v=>{if(v)tags.push(`<span class="tag">${v}</span>`);});
-  const back=`<div class="face back" aria-hidden="true">${icons(1)}
-    <h2>${x.t}</h2>
+  const back=`<div class="face front qf">${icons(0)}
+    <h2 id="card-title">${x.t}</h2>
     <div class="qs">${(x.q||[]).map(v=>`<p>« ${v} »</p>`).join('')}</div>
     <div class="tags">${tags.join('')}</div>
+    <button type="button" class="cta" data-flip>${ARROW}Retourner la carte</button>
   </div>`;
-  return `<article class="card" style="--c:${cvar(x.red?'red':x.c)};--t:${tvar(x.red?'red':x.c)};--fc:${fc};--cb:${cb}"><div class="inner">${front}${back}</div></article>`;
+  return `<article class="card" style="--c:${cvar(x.red?'red':x.c)};--t:${tvar(x.red?'red':x.c)};--fc:${fc};--cb:${cb}"><div class="inner">${back}${front}</div></article>`;
 }
 function openCard(id,from){
   if(!BY[id])return;
-  pushRecent(id);if(!$('list').hidden)renderRecent();
   if(from)opener=from;
   if(location.hash!=='#'+id){try{history.replaceState(null,'','#'+id);}catch(e){location.hash=id;}}
   const m=$('modal');m.innerHTML=cardHTML(BY[id]);$('ov').hidden=false;document.body.style.overflow='hidden';hover(null);
   const card=m.querySelector('.card');
+  /* La face cachée sort de la mise en page après le retournement, pour que la carte prenne la hauteur de la face visible */
   card.querySelectorAll('[data-flip]').forEach(b=>b.addEventListener('click',()=>{
-    const on=card.classList.toggle('flipped');
+    card.querySelectorAll('.face').forEach(f=>f.classList.remove('cl'));void card.offsetHeight;
+    const on=card.classList.toggle('flipped');m.scrollTop=0;
+    clearTimeout(card._t);card._t=setTimeout(()=>card.querySelector(on?'.front':'.back').classList.add('cl'),520);
     card.querySelector('.front').setAttribute('aria-hidden',String(on));card.querySelector('.back').setAttribute('aria-hidden',String(!on));
     card.querySelector(on?'.back [data-flip]':'.front [data-flip]').focus();}));
+  card.querySelectorAll('[data-fav]').forEach(b=>b.addEventListener('click',()=>{
+    const on=b.getAttribute('aria-pressed')!=='true';setFav(id,on);
+    card.querySelectorAll('[data-fav]').forEach(f=>{f.setAttribute('aria-pressed',String(on));f.setAttribute('aria-label',on?'Retirer de mes cartes':'Ajouter à mes cartes');});}));
   card.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeCard));
   card.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>openCard(b.dataset.go,b)));
   m.scrollTop=0;const keep=from&&from.closest&&from.closest('.icons')?from.getAttribute('aria-label'):null;
@@ -857,7 +922,6 @@ const fromHash=()=>{const id=decodeURIComponent(location.hash.slice(1));if(BY[id
 window.addEventListener('hashchange',fromHash);fromHash();
 
 /* Mode travail : WORK liste les cartes en cours ; vide, la page s'affiche normalement */
-const WORK=[];
 if(WORK.length){
   document.body.classList.add('work');
   const w=document.createElement('main');w.className='wk';w.setAttribute('aria-label','Cartes en cours');

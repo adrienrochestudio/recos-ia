@@ -333,6 +333,7 @@ body{margin:0}
     </div>
     <div class="about-col">
       <h2>Pour se former</h2>
+      <p>Se former aux enjeux des impacts du numérique et de l'IA dans son activité professionnelle, en 1 h 30</p>
       <p><a class="pill d dl" href="cours-stepup">Cours StepUP</a></p>
     </div>
   </div>
@@ -521,7 +522,7 @@ const ALLCARDS=[
 {id:"metadonnees",s:"Métadonnées à la source",c:'pre',t:"Rédiger une seule fois le résumé, les mots-clés et les sous-titres d'un programme, et les transmettre à chaque diffuseur",wip:1},
 {id:'decide',s:"Qui décide",c:'str',i:3,forme:'paires',verif:'2026-11',
  revoir:"À la parution du guide Travail et CNIL sur l'introduction de l'IA, à une décision de la Cour de cassation sur la consultation du CSE, ou si l'article 4 du règlement européen sur l'IA change encore.",
- t:"Fixer qui décide des outils d'IA, et quels usages sont admis ou à l'essai",
+ t:"Fixer dans une charte qui décide des outils d'IA, et quels usages sont admis ou à l'essai",
  txt:`<p>Une règle tient mieux quand elle part des outils que l'équipe utilise déjà. Elle peut alors limiter les usages qui consomment le plus d'énergie, comme la vidéo générée, et couper les fonctions d'IA qui tournent sans être demandées. Selon un sondage Cegid et OpinionWay de 2026, la plupart des salariés qui utilisent l'IA passent par des outils que leur entreprise ne fournit pas, souvent sans le dire.</p><p>Au moment de choisir un outil, la personne qui décide peut aussi demander par écrit à l'entreprise de l'IA ce que consomme cet outil, et garder sa réponse, ou son absence de réponse.</p>`,
  fig:[{type:'bars',max:100,rows:[["Ensemble des salariés",0,67,"67 %"],["Salariés de PME",0,77,"77 %"]]},{type:'list',items:["Une charte, adoptée en équipe, range chaque usage en admis, à l'essai ou écarté, et nomme la personne qui décide.","Un registre de décisions, tenu cas par cas quand un outil ou une fonction arrive, note chaque décision et qui l'a prise."]}],
   tip:"Une ligne de registre peut par exemple se limiter à : « Vidéo générée : à l'essai, en basse définition, décidé par la production le 3 novembre. »",
@@ -549,9 +550,9 @@ const ALLCARDS=[
 {id:"lourds",s:"Usages les plus lourds",c:'str',t:"Repérer les usages d'IA les plus lourds de la structure et commencer par eux",wip:1},
 {id:"seuil",s:"Seuil d'usage",c:'str',t:"Suivre les volumes d'usage et fixer un seuil au-delà duquel l'usage est rediscuté",wip:1},
 {id:"tester",s:"Tester avant d'équiper",c:'str',t:"Avant d'équiper la structure, tester l'outil sur un projet et vérifier le matériel qu'il demande",wip:1},
-{id:"automatisation",s:"Automatisation simple",c:'str',t:"Pour une tâche répétitive, préférer une automatisation simple à un agent",wip:1},
+{id:"automatisation",s:"Automatisation simple",c:'ind',t:"Pour une tâche répétitive, préférer une automatisation simple à un agent",wip:1},
 {id:"agent",s:"Cadrer un agent",c:'ind',t:"Cadrer un agent avant de le laisser travailler seul",wip:1},
-{id:"reutiliser",s:"Réutiliser",c:'str',t:"Réutiliser les images, les plans et les calculs existants avant d'en créer de nouveaux",wip:1},
+{id:"reutiliser",s:"Réutiliser",c:'pro',t:"Réutiliser les images, les plans et les calculs existants avant d'en créer de nouveaux",wip:1},
 {id:"savoir-faire",s:"Savoir-faire sans IA",c:'str',t:"Garder dans l'équipe des savoir-faire qui se passent de l'IA",wip:1},
 {id:"stations",s:"Stations de calcul",c:'str',t:"Faire évoluer les stations de calcul plutôt que de les remplacer, et les partager entre projets",wip:1},
 {id:"pays",s:"Pays des serveurs",c:'str',t:"Quand l'outil le permet, choisir des serveurs situés dans un pays à l'électricité bas carbone",wip:1},
@@ -635,7 +636,7 @@ const WORK=[];
 /* Carte pas encore rédigée et vérifiée : seul son titre s'affiche (choix d'Adrien, 3 novembre) */
 const blank=x=>dim(x)&&!WORK.includes(x.id);
 /* Cartes masquées, au moins le temps de la présentation (choix d'Adrien, 3 novembre 2026) */
-const MASQUEES=['savoir-faire','une-fois','stations','compression','fichiers','lourds','cycle','metadonnees','connect'];
+const MASQUEES=['savoir-faire','une-fois','stations','compression','fichiers','lourds','cycle','metadonnees','connect','agent','droits-ia','tester'];
 const CARDS=ALLCARDS.filter(x=>(SHOW_RED||!x.red)&&!MASQUEES.includes(x.id));
 
 const BY=Object.fromEntries(CARDS.map(x=>[x.id,x]));

@@ -57,6 +57,8 @@ nav{max-width:1900px;margin:0 auto;display:flex;align-items:center;gap:clamp(8px
 .seg button{border:0;background:transparent;border-radius:999px;min-height:38px;padding:0 18px;font-size:14px;cursor:pointer;color:var(--olive)}
 .seg button[aria-pressed="true"]{background:var(--olive);color:#fff}
 .cap{font-size:13px;color:var(--ink-2);margin:0}
+/* Sur téléphone, le schéma devient trop petit pour être lu : seule la vue Cartes est proposée */
+@media (max-width:599px){.seg{display:none}}
 .cap:empty{display:none}
 
 /* Vue « Qui peut agir » : façon radar, schéma à gauche, noms à droite */
@@ -146,9 +148,9 @@ nav{max-width:1900px;margin:0 auto;display:flex;align-items:center;gap:clamp(8px
 .sm{font-size:13.5px;line-height:1.45;color:var(--ink-2)}
 .box{background:var(--t);border-radius:12px;padding:14px 16px}
 .box p{font-size:14px;line-height:1.45}
-.tip{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;border-left:3px solid var(--c);padding:4px 0 4px 12px}
-.tip svg{width:20px;height:20px;color:var(--c);margin-top:1px}
-.tip p{font-size:14px;line-height:1.45;margin:0}
+.face .tip{position:static;opacity:1;max-width:none;box-shadow:none;border-radius:0;background:none;pointer-events:auto;display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;border-left:3px solid var(--c);padding:4px 0 4px 12px}
+.face .tip svg{width:20px;height:20px;color:var(--c);margin-top:1px}
+.face .tip p{font-size:14px;line-height:1.45;margin:0}
 .who{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:10px 14px;align-items:baseline}
 .who .chips{display:flex;flex-wrap:wrap;gap:5px}
 @media (max-width:480px){.who{grid-template-columns:1fr;gap:4px}}
@@ -218,12 +220,12 @@ nav{position:relative;z-index:20}
 .sub .gh{padding:9px 10px 3px;font-size:12.5px;color:var(--ink-2);font-weight:600}
 .lang>a{display:flex;align-items:center;gap:5px;color:var(--ink);text-decoration:none}
 .sub.sm{left:auto;right:-10px;min-width:0}
-.about{padding:56px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px));border-top:1px solid var(--line)}
-.about-in{max-width:760px;margin:0 auto;display:grid;gap:12px}
-.about h1{font-family:var(--head);font-size:clamp(26px,2.4vw,34px);margin:0;line-height:1.15}
-.about .ver{margin:-4px 0 4px;color:var(--ink-2);font-size:14px}
-.about p{margin:0;line-height:1.6}
-.about a{color:var(--olive);text-underline-offset:3px}
+.about{padding:72px max(16px,env(safe-area-inset-right,0px)) 72px max(16px,env(safe-area-inset-left,0px));margin-top:56px;background:var(--paper)}
+.about-in{max-width:760px;margin:0 auto;display:grid;gap:14px;justify-items:center;text-align:center}
+.about h2{font-family:var(--head);font-size:clamp(24px,2.2vw,32px);margin:0;line-height:1.2}
+.about p{margin:0;line-height:1.6;max-width:56ch}
+.about .dl{display:inline-block;margin-top:8px;font-size:16px;padding:12px 24px}
+.foot{border-top:1px solid var(--line)}
 .foot{background:var(--paper);padding:40px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px))}
 .foot-in{max-width:1900px;margin:0 auto;display:grid;grid-template-columns:minmax(0,2fr) repeat(2,minmax(0,1fr));gap:28px 40px}
 .f-id{display:grid;gap:12px;justify-items:start;align-content:start}
@@ -285,12 +287,9 @@ body{margin:0}
 
 <section class="about" aria-labelledby="about-t">
   <div class="about-in">
-    <h1 id="about-t">Bonnes pratiques IA</h1>
-    <p class="ver">Version du 3 novembre 2026</p>
-    <p>Ces cartes rassemblent des bonnes pratiques pour réduire l'impact environnemental de l'IA dans l'audiovisuel, le cinéma et la publicité. Chacune dit qui peut agir, qui peut l'exiger, et sur quelles sources elle s'appuie.</p>
-    <p>C'est un support de discussion, pas un audit. Les données publiées sur l'impact de l'IA restent partielles et changent vite, d'où l'année et la source données avec chaque chiffre.</p>
-    <p>Dans le schéma, l'individu est au centre et la filière à l'extérieur. Plus une catégorie est loin du centre, plus une décision prise à ce niveau touche de monde.</p>
-    <p class="more-l">Pour aller plus loin : <a href="https://ecoprod.com/10-pistes-pour-une-ia-plus-responsable/">10 pistes pour une IA plus responsable</a></p>
+    <h2 id="about-t">Pour mieux comprendre les enjeux</h2>
+    <p>Le rapport L'IA en clair explique d'où viennent les impacts environnementaux de l'IA.</p>
+    <p><a class="pill d dl" href="rapport-ia-en-clair.pdf">Rapport L'IA en clair</a></p>
   </div>
 </section>
 
@@ -595,7 +594,7 @@ const rv=$('rings'),rd=$('radar'),tip=$('tip');
 const FXSIZE={fort:3,moyen:2,faible:1,indirect:1};
 function sz(x){return x.red||!x.fx?2:FXSIZE[x.fx];}
 /* Taille du point selon le cercle : plus le cercle est large, plus une décision touche de monde (choix d'Adrien, 29 octobre) */
-const DSZ={ind:10,pro:13,str:16,pre:21,eia:26,fil:32};
+const DSZ={ind:7,pro:12,str:18,pre:25,eia:33,fil:42};
 const lvls=Object.fromEntries(LEVELS.map(l=>{const d=document.createElement('div');d.className='lvl';d.style.setProperty('--c',cvar(l.k));d.textContent=l.n;rd.appendChild(d);return [l.k,d];}));
 const dots={},items={},heads={};
 function bind(el,x){el.addEventListener('click',()=>openCard(x.id,el));
@@ -646,10 +645,16 @@ function layoutRings(){
     let a0=-Math.PI/2-share[0]/2;
     OUTER.forEach((key,si)=>{const mine=outer.filter(o=>o.key===key),tot=mine.reduce((s,o)=>s+o.d+S*k*2,0);let acc=0;
       mine.forEach(o=>{const w=(o.d+S*k*2)/tot*share[si],a=a0+acc+w/2+(jit(o.x.id,1)-.5)*w*.3,r=ro+(jit(o.x.id,2)-.5)*dmax*.35;acc+=w;
-        out.push({id:o.x.id,x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r,d:o.d});});
+        let rr=r,g2=0;while(hit(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr,o.d,labels)&&g2++<200)rr+=2;
+        out.push({id:o.x.id,x:cx+Math.cos(a)*rr,y:cy+Math.sin(a)*rr,d:o.d});});
       /* nom posé au-dessus de l'arc s'il est en haut, en dessous sinon : le dessin reste aussi étroit que possible */
-      const c=a0+share[si]/2,z=Z[key],pts=out.slice(-mine.length),up=Math.sin(c)<0,
+      let c=a0+share[si]/2,z=Z[key],pts=out.slice(-mine.length),up=Math.sin(c)<0,
         lx=pts.reduce((s,p)=>s+p.x,0)/pts.length,ly=up?Math.min(...pts.map(p=>p.y-p.d/2))-z.h/2-6:Math.max(...pts.map(p=>p.y+p.d/2))+z.h/2+6;
+      /* Prestataires et clients, Entreprises de l'IA : nom à côté du cercle, à la hauteur du plus haut de ses points, sans descendre sous le milieu (tous les noms dans la moitié haute) */
+      if(key!=='fil'){const top=Math.min(...pts.map(p=>p.y-p.d/2)),side=key==='pre'?-1:1;
+        if(W>=600){ly=Math.min(cy,top+z.h/2);lx=cx+side*(ro+dmax*.75+z.w/2);}
+        /* écran étroit : les deux noms rejoignent la ligne de Filière, en haut, pour ne pas élargir le dessin */
+        else{ly=cy-ro-dmax*.7-z.h/2-6;lx=cx+side*(ro*.62+z.w/2);}}
       zones[key]={lx,ly};ext.push({x:lx,y:ly,w:z.w,h:z.h});
       a0+=share[si];});
     const bb={l:1e9,r:-1e9,t:1e9,b:-1e9};

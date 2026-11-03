@@ -137,7 +137,7 @@ nav{max-width:1900px;margin:0 auto;display:flex;align-items:center;gap:clamp(8px
 .face{grid-area:1/1;position:relative;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--white);border:2px solid var(--c);border-radius:22px;padding:26px 26px 18px;display:grid;gap:18px;align-content:start;min-width:0}
 .back{transform:rotateY(180deg)}
 /* Les deux faces ont la même hauteur (3 novembre) ; le bouton Retourner reste visible en bas du cadre pendant le défilement */
-.qf{min-height:380px;grid-template-rows:auto auto auto 1fr;gap:24px;text-align:center;justify-items:center;padding-block:60px 26px}
+.qf{min-height:380px;grid-template-rows:auto auto 1fr;gap:24px;text-align:center;justify-items:center;padding-block:60px 26px}
 .qf .cta{align-self:end;position:sticky;bottom:20px}
 .qf.blank{grid-template-rows:1fr;align-content:center;min-height:300px}
 .icons{position:absolute;top:8px;right:8px;display:flex;gap:2px}
@@ -896,7 +896,6 @@ function cardHTML(x){
   const back=`<div class="face front qf">${icons(0)}
     <h2 id="card-title">${x.t}</h2>
     <div class="qs">${(x.q||[]).map(v=>`<p>« ${v} »</p>`).join('')}</div>
-    <div class="tags">${tags.join('')}</div>
     <button type="button" class="cta" data-flip>${ARROW}Retourner la carte</button>
   </div>`;
   return `<article class="card" style="--c:${cvar(x.red?'red':x.c)};--t:${tvar(x.red?'red':x.c)};--fc:${fc};--cb:${cb}"><div class="inner">${back}${front}</div></article>`;

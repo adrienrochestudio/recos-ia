@@ -636,27 +636,26 @@ function layoutRings(){
         const r=Math.sqrt(A/Math.PI)-d/2,a=i++*GOLD,px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r;
         if(hit(px,py,d,labels))continue;out.push({id:x.id,x:px,y:py,d});n++;}
       zones[key]={r0,r1:Math.sqrt(A/Math.PI)};});
-    /* anneau extérieur */
+    /* anneau extérieur : Filière en haut, Entreprises de l'IA à droite, Prestataires et clients à gauche.
+       Chaque nom est posé dans l'anneau : Filière entre deux de ses points, au sommet ; Entreprises de l'IA entre le dernier point de Filière et le premier des siens ; Prestataires et clients entre ses points et le premier de Filière. */
     const outer=OUTER.flatMap(key=>Z[key].list.map(x=>({key,x,d:dsz(x)*k})));
-    const dmax=Math.max(...outer.map(o=>o.d)),need=outer.reduce((s,o)=>s+o.d+S*k*2,0);
-    const ro=Math.max(zones.str.r1+GAP*k*1.5+dmax/2,need/(2*Math.PI));
-    /* l'arc de Filière est centré en haut, les deux autres suivent dans le sens des aiguilles d'une montre */
-    const share=OUTER.map(key=>outer.filter(o=>o.key===key).reduce((s,o)=>s+o.d+S*k*2,0)/need*2*Math.PI);
-    let a0=-Math.PI/2-share[0]/2;
-    OUTER.forEach((key,si)=>{const mine=outer.filter(o=>o.key===key),tot=mine.reduce((s,o)=>s+o.d+S*k*2,0);let acc=0;
-      mine.forEach(o=>{const w=(o.d+S*k*2)/tot*share[si],a=a0+acc+w/2+(jit(o.x.id,1)-.5)*w*.3,r=ro+(jit(o.x.id,2)-.5)*dmax*.35;acc+=w;
-        let rr=r,g2=0;while(hit(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr,o.d,labels)&&g2++<200)rr+=2;
-        out.push({id:o.x.id,x:cx+Math.cos(a)*rr,y:cy+Math.sin(a)*rr,d:o.d});});
-      /* nom posé au-dessus de l'arc s'il est en haut, en dessous sinon : le dessin reste aussi étroit que possible */
-      let c=a0+share[si]/2,z=Z[key],pts=out.slice(-mine.length),up=Math.sin(c)<0,
-        lx=pts.reduce((s,p)=>s+p.x,0)/pts.length,ly=up?Math.min(...pts.map(p=>p.y-p.d/2))-z.h/2-6:Math.max(...pts.map(p=>p.y+p.d/2))+z.h/2+6;
-      /* Prestataires et clients, Entreprises de l'IA : nom à côté du cercle, à la hauteur du plus haut de ses points, sans descendre sous le milieu (tous les noms dans la moitié haute) */
-      if(key!=='fil'){const top=Math.min(...pts.map(p=>p.y-p.d/2)),side=key==='pre'?-1:1;
-        if(W>=600){ly=Math.min(cy,top+z.h/2);lx=cx+side*(ro+dmax*.75+z.w/2);}
-        /* écran étroit : les deux noms rejoignent la ligne de Filière, en haut, pour ne pas élargir le dessin */
-        else{ly=cy-ro-dmax*.7-z.h/2-6;lx=cx+side*(ro*.62+z.w/2);}}
-      zones[key]={lx,ly};ext.push({x:lx,y:ly,w:z.w,h:z.h});
-      a0+=share[si];});
+    const dmax=Math.max(...outer.map(o=>o.d)),pad=S*k*2;
+    const filL=outer.filter(o=>o.key==='fil'),half=Math.ceil(filL.length/2);
+    const seq=[{lab:'fil'},...filL.slice(half),{lab:'eia'},...outer.filter(o=>o.key==='eia'),...outer.filter(o=>o.key==='pre'),{lab:'pre'},...filL.slice(0,half)];
+    /* place prise le long de l'anneau : un point, son diamètre ; un nom, la projection de sa boîte sur la tangente (calculée en trois passes, l'angle dépendant de la place) */
+    let ang=seq.map(it=>it.lab==='fil'?-Math.PI/2:0),wid=[];
+    for(let pass=0;pass<3;pass++){
+      wid=seq.map((it,i)=>it.lab?Math.abs(Z[it.lab].w*Math.sin(ang[i]))+Math.abs(Z[it.lab].h*Math.cos(ang[i]))+pad*3:it.d+pad);
+      const tot=wid.reduce((s,v)=>s+v,0);let acc=-Math.PI/2-wid[0]/tot*Math.PI;
+      ang=wid.map(v=>{const c=acc+v/tot*Math.PI;acc+=v/tot*2*Math.PI;return c;});
+    }
+    const tot=wid.reduce((s,v)=>s+v,0),ro=Math.max(zones.str.r1+GAP*k*1.5+dmax/2,tot/(2*Math.PI));
+    seq.forEach((it,i)=>{const a0=ang[i],span=wid[i]/tot*2*Math.PI;
+      if(it.lab){const z=Z[it.lab],radial=(Math.abs(z.w*Math.cos(a0))+Math.abs(z.h*Math.sin(a0)))/2,rl=ro+Math.max(0,radial-dmax/2);
+        const lx=cx+Math.cos(a0)*rl,ly=cy+Math.sin(a0)*rl;zones[it.lab]={lx,ly};ext.push({x:lx,y:ly,w:z.w,h:z.h});return;}
+      const a=a0+(jit(it.x.id,1)-.5)*span*.3;let rr=ro+(jit(it.x.id,2)-.5)*dmax*.35,g2=0;
+      while(hit(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr,it.d,labels)&&g2++<200)rr+=2;
+      out.push({id:it.x.id,x:cx+Math.cos(a)*rr,y:cy+Math.sin(a)*rr,d:it.d});});
     const bb={l:1e9,r:-1e9,t:1e9,b:-1e9};
     [...out,...ext].forEach(p=>{const hw=(p.w||p.d)/2,hh=(p.h||p.d)/2;bb.l=Math.min(bb.l,p.x-hw);bb.r=Math.max(bb.r,p.x+hw);bb.t=Math.min(bb.t,p.y-hh);bb.b=Math.max(bb.b,p.y+hh);});
     return {out,zones,bb};}

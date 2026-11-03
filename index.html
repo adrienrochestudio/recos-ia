@@ -704,19 +704,28 @@ function layoutRings(){
     const filL=outer.filter(o=>o.key==='fil'),half=Math.ceil(filL.length/2);
     const seq=[{lab:'fil'},...filL.slice(half),{lab:'eia'},...outer.filter(o=>o.key==='eia'),...outer.filter(o=>o.key==='pre'),{lab:'pre'},...filL.slice(0,half)];
     /* place prise le long de l'anneau : un point, son diamètre ; un nom, la projection de sa boîte sur la tangente (calculée en trois passes, l'angle dépendant de la place) */
-    let ang=seq.map(it=>it.lab==='fil'?-Math.PI/2:0),wid=[];
-    for(let pass=0;pass<3;pass++){
-      wid=seq.map((it,i)=>it.lab?Math.abs(Z[it.lab].w*Math.sin(ang[i]))+Math.abs(Z[it.lab].h*Math.cos(ang[i]))+pad*3:it.d+pad);
-      const tot=wid.reduce((s,v)=>s+v,0);let acc=-Math.PI/2-wid[0]/tot*Math.PI;
-      ang=wid.map(v=>{const c=acc+v/tot*Math.PI;acc+=v/tot*2*Math.PI;return c;});
+    /* Espacement égal (3 novembre) : la place libre du tour se partage à parts égales entre tous les éléments, quel que soit leur diamètre */
+    const minR=zones.str.r1+GAP*k*1.5+dmax/2;
+    let ang=seq.map(it=>it.lab==='fil'?-Math.PI/2:0),wid=[],ro=minR,g=0;
+    for(let pass=0;pass<4;pass++){
+      wid=seq.map((it,i)=>it.lab?Math.abs(Z[it.lab].w*Math.sin(ang[i]))+Math.abs(Z[it.lab].h*Math.cos(ang[i]))+pad:it.d);
+      const sw=wid.reduce((s,v)=>s+v,0)+pad*seq.length;ro=Math.max(minR,sw/(2*Math.PI));g=(2*Math.PI*ro-sw)/seq.length+pad;
+      let acc=-Math.PI/2-(wid[0]+g)/2/ro;
+      ang=wid.map(v=>{const c=acc+(v+g)/2/ro;acc+=(v+g)/ro;return c;});
     }
-    const tot=wid.reduce((s,v)=>s+v,0),ro=Math.max(zones.str.r1+GAP*k*1.5+dmax/2,tot/(2*Math.PI));
-    seq.forEach((it,i)=>{const a0=ang[i],span=wid[i]/tot*2*Math.PI;
-      if(it.lab){const z=Z[it.lab],radial=(Math.abs(z.w*Math.cos(a0))+Math.abs(z.h*Math.sin(a0)))/2,rl=ro+Math.max(0,radial-dmax/2);
-        const lx=cx+Math.cos(a0)*rl,ly=cy+Math.sin(a0)*rl;zones[it.lab]={lx,ly};ext.push({x:lx,y:ly,w:z.w,h:z.h});return;}
-      const a=a0+(jit(it.x.id,1)-.5)*span*.3;let rr=ro+(jit(it.x.id,2)-.5)*dmax*.35,g2=0;
-      while(hit(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr,it.d,labels)&&g2++<200)rr+=2;
-      out.push({id:it.x.id,x:cx+Math.cos(a)*rr,y:cy+Math.sin(a)*rr,d:it.d});});
+    /* Position de chaque élément pour un angle donné : un nom reste au plus près du cercle de Structure, un point garde un écart radial propre (aspect de nuage) */
+    const pos=(it,a)=>{if(it.lab){const z=Z[it.lab],radial=(Math.abs(z.w*Math.cos(a))+Math.abs(z.h*Math.sin(a)))/2,rl=Math.max(ro,zones.str.r1+GAP*k*2+radial);
+        const x=cx+Math.cos(a)*rl,y=cy+Math.sin(a)*rl;return {x,y,l:x-z.w/2,r:x+z.w/2,t:y-z.h/2,b:y+z.h/2};}
+      let rr=ro+(jit(it.x.id,2)-.5)*dmax*.35,g2=0;while(hit(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr,it.d,labels)&&g2++<200)rr+=2;
+      return {x:cx+Math.cos(a)*rr,y:cy+Math.sin(a)*rr,rad:it.d/2};};
+    const gapOf=(A,B)=>{if(A.rad!=null&&B.rad!=null)return Math.hypot(A.x-B.x,A.y-B.y)-A.rad-B.rad;const C=A.rad!=null?A:B,R=A.rad!=null?B:A;
+      const dx=Math.max(R.l-C.x,0,C.x-R.r),dy=Math.max(R.t-C.y,0,C.y-R.b);return Math.hypot(dx,dy)-C.rad;};
+    /* Ajustement : chaque élément glisse le long de l'anneau vers le côté où l'écart est le plus grand, jusqu'à des écarts égaux (Filière reste au sommet) */
+    for(let it2=0;it2<80;it2++){const P=seq.map((it,i)=>pos(it,ang[i])),n=seq.length,gp=P.map((q,i)=>gapOf(q,P[(i+1)%n]));
+      for(let i=1;i<n;i++)ang[i]+=(gp[i]-gp[i-1])/2/ro*.5;}
+    seq.forEach((it,i)=>{const q=pos(it,ang[i]);
+      if(it.lab){zones[it.lab]={lx:q.x,ly:q.y};ext.push({x:q.x,y:q.y,w:Z[it.lab].w,h:Z[it.lab].h});return;}
+      out.push({id:it.x.id,x:q.x,y:q.y,d:it.d});});
     const bb={l:1e9,r:-1e9,t:1e9,b:-1e9};
     [...out,...ext].forEach(p=>{const hw=(p.w||p.d)/2,hh=(p.h||p.d)/2;bb.l=Math.min(bb.l,p.x-hw);bb.r=Math.max(bb.r,p.x+hw);bb.t=Math.min(bb.t,p.y-hh);bb.b=Math.max(bb.b,p.y+hh);});
     return {out,zones,bb};}

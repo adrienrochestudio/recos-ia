@@ -136,9 +136,9 @@ nav{max-width:1900px;margin:0 auto;display:flex;align-items:center;gap:clamp(8px
 .card.flipped .inner{transform:rotateY(180deg)}
 .face{grid-area:1/1;position:relative;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--white);border:2px solid var(--c);border-radius:22px;padding:26px 26px 18px;display:grid;gap:18px;align-content:start;min-width:0}
 .back{transform:rotateY(180deg)}
-.face.cl{display:none}
-.face{align-self:start}
-.qf{min-height:380px;grid-template-rows:auto 1fr auto auto;gap:24px;text-align:center;justify-items:center;padding-block:60px 26px}
+/* Les deux faces ont la même hauteur (3 novembre) ; le bouton Retourner reste visible en bas du cadre pendant le défilement */
+.qf{min-height:380px;grid-template-rows:auto auto auto 1fr;gap:24px;text-align:center;justify-items:center;padding-block:60px 26px}
+.qf .cta{align-self:end;position:sticky;bottom:20px}
 .qf.blank{grid-template-rows:1fr;align-content:center;min-height:300px}
 .icons{position:absolute;top:8px;right:8px;display:flex;gap:2px}
 .icons button{width:40px;height:40px;border:0;background:transparent;border-radius:50%;color:var(--ink-3);cursor:pointer;display:grid;place-items:center}
@@ -241,7 +241,8 @@ nav{position:relative;z-index:20}
 .sub.sm{left:auto;right:-10px;min-width:0}
 .about{padding:72px max(16px,env(safe-area-inset-right,0px)) 72px max(16px,env(safe-area-inset-left,0px));margin-top:56px;background:var(--paper)}
 .about-in{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 56px}
-.about-col{display:grid;gap:14px;justify-items:center;align-content:start;text-align:center}
+.about-col{display:grid;gap:14px;justify-items:center;grid-template-rows:auto 1fr auto;text-align:center}
+.about-col>p:last-child{align-self:end}
 @media (max-width:760px){.about-in{grid-template-columns:1fr}}
 .about h2{font-family:var(--head);font-size:clamp(24px,2.2vw,32px);margin:0;line-height:1.2}
 .about p{margin:0;line-height:1.6;max-width:56ch;text-wrap:balance}
@@ -272,7 +273,6 @@ body{margin:0}
 .wk-card .back{transform:none}
 .wk-card .cta{display:none}
 .wk-card .icons{display:none}
-.wk-card .face.cl{display:grid}
 .wk-card .hd{padding-right:0}
 .wk-meta{font-size:13px;color:var(--ink-2);display:grid;gap:2px}
 @media (max-width:900px){.wk-card .inner{grid-template-columns:1fr}}
@@ -280,14 +280,12 @@ body{margin:0}
 @media print{
   body>*:not(#print){display:none!important}
   #print{display:block}
-  #print .card{break-after:page;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  #print .card:last-child{break-after:auto}
-  #print .inner{display:grid;gap:14px;transform:none!important}
-  #print .face{grid-area:auto;backface-visibility:visible;-webkit-backface-visibility:visible}
-  #print .qf{break-inside:avoid}
+  #print .card{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #print .inner{display:grid;gap:0;grid-auto-rows:1fr;transform:none!important}
+  #print .face{grid-area:auto;backface-visibility:visible;-webkit-backface-visibility:visible;break-inside:avoid;break-after:page;zoom:.8}
+  #print .card:last-child .face:last-child{break-after:auto}
   #print .back{transform:none}
-  #print .face.cl{display:grid}
-  #print .qf{padding-block:26px;min-height:0}
+  #print .qf{min-height:0}
   #print .icons,#print .cta{display:none}
   #print .hd{padding-right:0}
 }
@@ -880,7 +878,7 @@ function cardHTML(x){
   if(bl)return `<article class="card" style="--c:${cvar(x.c)};--t:${tvar(x.c)};--fc:${fc};--cb:${cb}"><div class="inner"><div class="face front qf blank">${icons(0)}<h2 id="card-title">${x.t}</h2></div></div></article>`;
   const goList=x.go?`<div class="txt"><p class="sm">À la place</p><div class="go">${x.go.map(o=>`<button type="button" data-go="${o}"><i style="background:${cvar(BY[o].c)}"></i>${BY[o].t}</button>`).join('')}</div></div>`:'';
   const seeList=!x.red&&x.voir?`<div class="txt"><p class="sm">Voir aussi</p><div class="go">${x.voir.filter(o=>BY[o]).slice(0,2).map(o=>`<button type="button" data-go="${o}"><i style="background:${cvar(BY[o].c)}"></i>${BY[o].t}</button>`).join('')}</div></div>`:'';
-  const front=`<div class="face back cl" aria-hidden="true">${icons(1)}
+  const front=`<div class="face back" aria-hidden="true">${icons(1)}
     <div class="hd">${x.red?'<p class="kind">Fausse bonne pratique</p>':''}<h2>${x.t}</h2>${x.sub?`<p>${x.sub}</p>`:''}${x.avec?`<p class="avec"><i style="background:${cvar(x.avec)}"></i>${LV[x.avec].avec}</p>`:''}</div>
     ${x.txt?`<div class="txt">${x.txt}</div>`:''}
     ${x.fig?[].concat(x.fig).map(fig).join(''):''}${x.txt2?`<div class="txt">${x.txt2}</div>`:''}${x.fig2?[].concat(x.fig2).map(fig).join(''):''}${x.tip?`<div class="tip"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 15.5h5M8.5 18h3"/><path d="M10 2.5a5 5 0 0 0-3 9c.6.5 1 1.2 1 2v.5h4v-.5c0-.8.4-1.5 1-2a5 5 0 0 0-3-9z"/></svg><p>${x.tip}</p></div>`:''}
@@ -911,9 +909,7 @@ function openCard(id,from){
   const card=m.querySelector('.card');
   /* La face cachée sort de la mise en page après le retournement, pour que la carte prenne la hauteur de la face visible */
   card.querySelectorAll('[data-flip]').forEach(b=>b.addEventListener('click',()=>{
-    card.querySelectorAll('.face').forEach(f=>f.classList.remove('cl'));void card.offsetHeight;
     const on=card.classList.toggle('flipped');m.scrollTop=0;setTimeout(fade,560);
-    clearTimeout(card._t);card._t=setTimeout(()=>card.querySelector(on?'.front':'.back').classList.add('cl'),520);
     card.querySelector('.front').setAttribute('aria-hidden',String(on));card.querySelector('.back').setAttribute('aria-hidden',String(!on));
     card.querySelector(on?'.back [data-flip]':'.front [data-flip]').focus();}));
   card.querySelectorAll('[data-fav]').forEach(b=>b.addEventListener('click',()=>{
